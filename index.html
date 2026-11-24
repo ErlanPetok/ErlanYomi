@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0e1015">
 <link rel="icon" type="image/webp" href="https://i.ibb.co.com/Fq7XY1Rj/148855716-p4-master1200-2.webp">
 <link rel="apple-touch-icon" href="https://i.ibb.co.com/Fq7XY1Rj/148855716-p4-master1200-2.webp">
-<title>Manga Counter</title>
+<title>ErlanYomi</title>
 <style>
   :root{
     --bg:#0e1015; --panel:#161a22; --panel2:#1d222c; --line:#2a3140;
@@ -115,7 +115,7 @@
               border-radius:14px; overflow:hidden; cursor:pointer;
               display:flex; flex-direction:column;
               transition:border-color .15s, transform .12s}
-  .manga-card:hover{border-color:var(--accent); transform:translateY(-2px)}
+  @media (hover:hover){.manga-card:hover{border-color:var(--accent); transform:translateY(-2px)}}
   .manga-cover{aspect-ratio:2/3; background:var(--panel2);
                display:flex; align-items:center; justify-content:center;
                color:var(--dim); font-size:11px; text-align:center; overflow:hidden;
@@ -451,6 +451,42 @@
                border:1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
                border-radius:10px; padding:10px 12px; font-size:12px; line-height:1.6}
 
+  /* Added reader upgrades */
+  .save-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#6ee7a8;margin-left:4px;vertical-align:middle;box-shadow:0 0 0 2px rgba(110,231,168,.12)}
+  .save-dot.pending{background:#fbbf24;box-shadow:0 0 0 2px rgba(251,191,36,.14)}
+  .manga-card .manga-progress{position:relative}
+  .manga-card .manga-progress>div{transition:width .2s}
+  .manga-card .manga-subline{font-size:10px;color:var(--dim);display:flex;justify-content:space-between;gap:5px}
+  .lib-favbar{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 12px;align-items:center}
+  .lib-favbar button{border:1px solid var(--line);background:var(--panel);color:var(--txt);border-radius:9px;padding:7px 10px;font:inherit;font-size:12px;cursor:pointer}
+  .lib-favbar button.on{border-color:var(--accent);color:var(--accent)}
+  .manga-actions button{min-width:0}
+  .manga-actions button.secondary{background:transparent}
+  .progress-ring{width:27px;height:27px;border-radius:50%;display:inline-grid;place-items:center;background:conic-gradient(var(--accent) var(--pct),var(--panel2) 0);flex:0 0 auto}
+  .progress-ring:after{content:attr(data-pct);width:19px;height:19px;border-radius:50%;display:grid;place-items:center;background:var(--panel);font-size:8px;font-weight:800;color:var(--txt)}
+  .reader-pinned{position:absolute;z-index:18;left:10px;right:10px;bottom:calc(58px + env(safe-area-inset-bottom));display:flex;gap:6px;overflow-x:auto;padding:6px;pointer-events:auto;scrollbar-width:none}
+  .reader-pinned:empty{display:none}
+  .reader-pin{flex:0 0 auto;border:1px solid rgba(255,255,255,.28);background:rgba(20,24,32,.88);color:#fff;border-radius:999px;padding:7px 10px;font:700 11px/1.2 system-ui;min-height:34px;touch-action:pan-x;user-select:none}
+  .reader-pin b{color:#9db5ff;margin-left:4px}
+  .zoom-indicator{position:absolute;z-index:22;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.72);color:white;padding:7px 11px;border-radius:20px;font-weight:700;font-size:12px;pointer-events:none;opacity:0;transition:opacity .15s}
+  .zoom-indicator.show{opacity:1}
+  .fs-reader[data-fit="width"] .fs-spread:not(.double) img{width:100%;height:auto;max-height:none;max-width:100%;object-fit:contain}
+  .fs-reader[data-fit="height"] .fs-spread:not(.double) img{height:100%;width:auto;max-width:100%;max-height:100%;object-fit:contain}
+  .fs-reader[data-fit="original"] .fs-spread img{width:auto;height:auto;max-width:none;max-height:none;object-fit:initial}
+  .fs-reader[data-fit="page"] .fs-spread img{max-width:100%;max-height:100%;object-fit:contain}
+  .jm-search{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:10px 12px;font:inherit;outline:none}
+  .chapter-item .read-state{font-size:10px;color:var(--dim);border:1px solid var(--line);border-radius:20px;padding:2px 6px}
+  .chapter-item.is-read .read-state{color:var(--story);border-color:color-mix(in srgb,var(--story) 40%,var(--line))}
+  .chapter-item .ci-cover{width:30px;height:40px;object-fit:cover;border-radius:4px;background:var(--bg);display:none}
+  .chapter-item.show-cover .ci-cover{display:block}
+  .structure-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:9px}
+  .structure-thumb{background:var(--panel2);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:11px}
+  .structure-thumb img{display:block;width:100%;aspect-ratio:2/3;object-fit:cover}
+  .structure-thumb div{padding:6px}
+  .chapter-transition{position:absolute;z-index:24;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(16,20,28,.94);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:14px 18px;color:#fff;text-align:center;pointer-events:none;animation:chapterPop 1.4s ease both;max-width:85vw}
+  @keyframes chapterPop{0%{opacity:0;transform:translate(-50%,-42%)}12%,75%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0}}
+  @media(max-width:600px){.reader-pinned{bottom:calc(56px + env(safe-area-inset-bottom));}.manga-actions{flex-wrap:wrap}.manga-actions button{flex:1 1 28%}}
+
   /* ===== Reader v2: strip, spreads, settings, jump menu ===== */
   .fs-empty{position:relative; z-index:6}
   .fs-reader.is-strip .fs-zone{display:none}
@@ -468,6 +504,7 @@
     .fs-top-right{width:100%; justify-content:flex-end}
   }
 
+  .fs-reader:not(.is-strip) .fs-stage{touch-action:none}
   /* paged spreads */
   .fs-spread{position:absolute; inset:0; display:flex; align-items:center;
              justify-content:center; z-index:1; pointer-events:none}
@@ -558,6 +595,16 @@
   .rs-note{font-size:12px; color:var(--dim); line-height:1.5}
 
   /* jump menu */
+  .mangadex-helper{display:inline-block; margin-top:3px; color:var(--dim); opacity:.78;
+    font-size:11px; line-height:1.3; text-decoration:none; white-space:normal}
+  .mangadex-helper:hover{opacity:1; color:var(--txt); text-decoration:underline}
+  .lib-title-wrap{display:flex; flex-direction:column; align-items:flex-start; min-width:0}
+  /* Keep the five manga actions readable on narrow library cards. */
+  .manga-actions{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; padding:0 11px 11px}
+  .manga-actions button{min-width:0; width:100%; min-height:29px; padding:5px 3px; font-size:10px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:none}
+  .manga-actions button:first-child{grid-column:1 / -1}
+  @media(max-width:600px){.manga-actions{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); flex-wrap:initial}}
   .jm-now{font-size:12px; color:var(--dim)}
   .jm-now b{color:var(--txt)}
   .jm-chips{display:flex; gap:6px; overflow-x:auto; padding-bottom:4px}
@@ -573,7 +620,7 @@
 <body>
 
 <header class="topnav" id="topnav">
-  <div class="brand">📖 Manga <span>Counter</span></div>
+  <div class="brand">📖 Erlan<span>Yomi</span><span id="saveDot" class="save-dot" title="Saved locally"></span></div>
   <div class="viewtabs" id="viewTabs">
     <button class="viewtab" data-view="library">📚 Library</button>
     <button class="viewtab" data-view="counter">🔢 Counter</button>
@@ -744,7 +791,7 @@ function emptyManga(title){
     volume: 1, chapter: 1, page: 1,
     lastExport: 0,
     readingDirection: 'rtl',
-    pageTransition: 'none'
+    pageTransition: 'none', fitMode:'page', favorite:false, readChapters:{}, readingSessions:[], lastReadAt:0
   };
 }
 function defaultLibrary(){
@@ -778,6 +825,9 @@ function defaultLibrary(){
         v.mangas.forEach(mm => {
           if(!mm.readingDirection) mm.readingDirection = 'rtl';
           if(!mm.pageTransition) mm.pageTransition = 'none';
+          if(!mm.fitMode) mm.fitMode='page'; if(!mm.readChapters) mm.readChapters={};
+          if(!Array.isArray(mm.readingSessions)) mm.readingSessions=[];
+          if(typeof mm.favorite!=='boolean') mm.favorite=false; if(!mm.lastReadAt) mm.lastReadAt=0;
         });
         return v;
       }
@@ -820,6 +870,11 @@ function load(){
         s.mangas.forEach(m => {
           if(!m.readingDirection) m.readingDirection = 'rtl';
           if(!m.pageTransition) m.pageTransition = 'none';
+          if(!m.fitMode) m.fitMode = 'page';
+          if(!m.readChapters) m.readChapters = {};
+          if(!Array.isArray(m.readingSessions)) m.readingSessions = [];
+          if(typeof m.favorite !== 'boolean') m.favorite = false;
+          if(!m.lastReadAt) m.lastReadAt = 0;
         });
         return s;
       }
@@ -827,8 +882,12 @@ function load(){
   }catch(e){}
   return defaultLibrary();
 }
+function setSaveIndicator(pending){
+  const dot = document.getElementById('saveDot');
+  if(dot) dot.classList.toggle('pending', !!pending);
+}
 function save(){
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); setSaveIndicator(false); }catch(e){ setSaveIndicator(true); }
 }
 const esc = s => String(s).replace(/[&<>"']/g, m =>
   ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -895,6 +954,40 @@ async function storageEstimate(){
     }
   }catch(e){}
   return { used: 0, quota: 0 };
+}
+function fmtDur(ms){
+  ms = Math.max(0, ms || 0); if(!ms) return '0m';
+  const mins = Math.round(ms/60000);
+  if(mins < 1) return '<1m';
+  if(mins < 60) return mins + 'm';
+  const h = Math.floor(mins/60), r = mins % 60;
+  return r ? `${h}h ${r}m` : `${h}h`;
+}
+function ensureReadTime(m){
+  if(!m.readTime || typeof m.readTime !== 'object') m.readTime = {};
+  if(!m.readTimeBackfilled){
+    m.readTimeBackfilled = true;
+    for(const sess of (m.readingSessions || [])) for(const x of (sess.chapterBreakdown || [])){
+      if(x && x.timeMs > 0){ const k = `${x.v}:${x.ch}`; m.readTime[k] = (m.readTime[k] || 0) + x.timeMs; }
+    }
+  }
+  return m.readTime;
+}
+function addReadTime(m, key, ms){ if(!m || !key || !(ms > 0)) return; const t = ensureReadTime(m); t[key] = (t[key] || 0) + ms; }
+function mangaReadMs(m){ return Object.values(ensureReadTime(m)).reduce((a, b) => a + (b || 0), 0); }
+function volReadMs(m, v){ const t = ensureReadTime(m); let n = 0; for(const k in t) if(k.startsWith(`${v}:`)) n += t[k] || 0; return n; }
+function chReadMs(m, v, c){ return ensureReadTime(m)[`${v}:${c}`] || 0; }
+function readTimeHTML(m){
+  const total = mangaReadMs(m);
+  if(!total) return '<p class="hint">No reading time recorded yet. It adds up while you read in the reader.</p>';
+  const rows = (m.volumes || []).map(v => {
+    const vt = volReadMs(m, v.num);
+    const chs = v.chapters.map(c => ({n:c.num, t:chReadMs(m, v.num, c.num)})).filter(x => x.t > 0)
+      .map(x => `Ch ${x.n}: ${fmtDur(x.t)}`).join(' · ');
+    return `<tr><td>Volume ${v.num}</td><td class="num">${fmtDur(vt)}</td><td class="dim">${chs}</td></tr>`;
+  }).join('');
+  return `<div class="wrap"><table class="tbl"><thead><tr><th></th><th>Time</th><th>Chapters</th></tr></thead><tbody>${rows}
+    <tr class="totalrow"><td>ALL</td><td class="num">${fmtDur(total)}</td><td></td></tr></tbody></table></div>`;
 }
 function fmtBytes(b){
   if(!b) return '0 B';
@@ -1078,6 +1171,7 @@ function parseChapterFolder(name){
 /* Navigation */
 function setView(v){
   if(v !== 'reader'){
+    finishSession();
     const fs = document.getElementById('fsReader');
     if(fs) fs.dataset.bound = '';
     stopAuto(); teardownStrip(); flushSave();
@@ -1119,8 +1213,10 @@ function renderSubbar(){
 async function renderLibrary(){
   const est = await storageEstimate();
   const uploadedCount = state.mangas.filter(m => m.sourceType === 'uploaded').length;
-  const cards = state.mangas.map(m => {
+  const cards = state.mangas.filter(m => !libraryHideRead || !m.volumes.length || progressPct(m) < 100).map(m => {
     const sub = `${m.events.length} counts · Vol ${m.volume} · Ch ${m.chapter} · p. ${m.page}`;
+    const pct = progressPct(m);
+    const lastRead = m.lastReadAt ? relTime(m.lastReadAt) : 'Not read yet';
     const badge = m.sourceType === 'folder'
       ? '<span class="badge linked">🔗 folder</span>'
       : (m.sourceType === 'uploaded'
@@ -1136,18 +1232,26 @@ async function renderLibrary(){
       <div class="manga-body">
         <div class="manga-title" title="${esc(m.title)}">${esc(m.title)}</div>
         <div class="manga-sub">${esc(sub)}</div>
-        <div class="manga-progress"><div style="width:${progressPct(m)}%"></div></div>
+        <div class="manga-subline"><span>${esc(lastRead)}${mangaReadMs(m)>0?' · ⏱ '+fmtDur(mangaReadMs(m)):''}</span><span>${pct}% <span class="progress-ring" data-pct="${pct}" style="--pct:${pct}%"></span></span></div><div class="manga-progress"><div style="width:${pct}%"></div></div>
       </div>
       <div class="manga-actions">
-        <button data-act="openManga" data-id="${m.id}">Read</button>
-        <button data-act="renameManga" data-id="${m.id}">Rename</button>
-        <button data-act="deleteManga" data-id="${m.id}" style="color:var(--danger)">Delete</button>
+        <button data-act="openManga" data-id="${m.id}">Continue</button>
+        <button class="secondary" data-act="structure" data-id="${m.id}">Structure</button>
+        <button class="secondary" data-act="favoriteManga" data-id="${m.id}">${m.favorite ? "★" : "☆"}</button>
+        <button class="secondary" data-act="renameManga" data-id="${m.id}">Rename</button>
+        <button class="secondary" data-act="deleteManga" data-id="${m.id}" style="color:var(--danger)">Delete</button>
       </div>
     </div>`;
   }).join('');
+  const favs = state.mangas.filter(m => m.favorite);
+  const favBar = favs.length ? `<div class="lib-favbar"><b>★ Favorites</b>${favs.map(m=>`<button data-act="openManga" data-id="${m.id}">${esc(m.title)}</button>`).join('')}</div>` : '';
   document.getElementById('main').innerHTML = `
     <div class="lib-head">
-      <h2>Library</h2>
+      <div class="lib-title-wrap">
+        <h2>Library</h2>
+        <a class="mangadex-helper" href="https://manga.danbulant.eu" target="_blank" rel="noopener noreferrer">Download manga from MangaDex →</a>
+      </div>
+      <button class="btn" data-act="toggleHideRead">${libraryHideRead ? 'Show read' : 'Hide completed'}</button>
       <span class="grow"></span>
       <div class="storage-meter">
         <div>Storage: <b>${fmtBytes(est.used)}</b> / ${est.quota ? fmtBytes(est.quota) : '–'}
@@ -1155,6 +1259,7 @@ async function renderLibrary(){
         <div class="bar"><div style="width:${est.quota ? Math.min(100, (est.used/est.quota)*100) : 0}%"></div></div>
       </div>
     </div>
+    ${favBar}
     <div class="lib-grid">
       ${cards}
       <button class="add-manga" data-act="addManga">
@@ -1336,7 +1441,7 @@ function renderCounter(){
 /* Stats */
 function volSummaryHTML(m, v){
   const evs = m.events.filter(e => e.v === v);
-  if(!evs.length) return `<div class="vol-summary"><h4>Volume ${v}</h4>
+  if(!evs.length) return `<div class="vol-summary"><h4>Volume ${v}${volReadMs(m,v)>0?` <small class="dim">· ⏱ ${fmtDur(volReadMs(m,v))}</small>`:''}</h4>
       <div class="dim" style="font-size:12px">No counts recorded.</div></div>`;
   const counts = {};
   for(const e of evs){
@@ -1390,6 +1495,102 @@ function volSummaryHTML(m, v){
         ).join('') : '<li class="dim">None</li>'}</ul></div>
     </div></div>`;
 }
+
+/* ===== Reading sessions, pinned quick counters, fit + zoom ===== */
+function sessionKey(v,ch){ return `${v}:${ch}`; }
+function ensureSession(m){
+  if(!m) return null;
+  if(!Array.isArray(m.readingSessions)) m.readingSessions=[];
+  if(activeReadSession && activeReadSession.mid===m.id) return activeReadSession;
+  if(m.activeReadingSession && m.activeReadingSession.mid===m.id){
+    activeReadSession=m.activeReadingSession;
+    activeReadSession.pages=activeReadSession.pages||[]; activeReadSession.chapters=activeReadSession.chapters||[]; activeReadSession.chapterStats=activeReadSession.chapterStats||{};
+    showResumeToast(m);
+    return activeReadSession;
+  }
+  activeReadSession={mid:m.id,startedAt:Date.now(),endedAt:0,from:{v:m.volume,ch:m.chapter,p:m.page},to:{v:m.volume,ch:m.chapter,p:m.page},pages:[],chapters:[],chapterStats:{}};
+  m.activeReadingSession=activeReadSession; m.lastReadAt=Date.now();
+  recordReadingPage(); saveSoon(); return activeReadSession;
+}
+function showResumeToast(m){
+  if(!m || !m.activeReadingSession || resumePromptShownIds.has(m.id)) return;
+  resumePromptShownIds.add(m.id);
+  const box=document.createElement('div');box.className='chapter-transition';box.style.pointerEvents='auto';
+  box.innerHTML=`<b>Welcome back</b><div style="margin:5px 0 10px">Resume Vol ${m.volume} · Ch ${m.chapter} · p. ${m.page}?</div><div style="display:flex;gap:7px;justify-content:center"><button class="btn primary" data-resume>Resume</button><button class="btn" data-start-over>Start over</button></div>`;
+  const stage=document.getElementById('fsStage');if(!stage)return;box.style.animation='none';stage.appendChild(box);
+  box.addEventListener('click',e=>{if(e.target.closest('[data-start-over]')){m.volume=m.volumes[0]?.num||1;m.chapter=m.volumes[0]?.chapters[0]?.num||1;m.page=1;activeReadSession=null;m.activeReadingSession=null;save();loadCurrentPage();box.remove();}else if(e.target.closest('[data-resume]'))box.remove();});
+  setTimeout(()=>box.remove(),8000);
+}
+function recordReadingPage(v, ch, p){
+  const m=currentManga(); if(!m || state.view!=='reader') return;
+  const s=ensureSession(m); if(!s) return;
+  const vv=v ?? m.volume, cc=ch ?? m.chapter, pp=p ?? m.page;
+  const now=Date.now();
+  if(s.lastTickAt && s.lastChapterKey && s.chapterStats?.[s.lastChapterKey]){ const dt=Math.min(60000,Math.max(0,now-s.lastTickAt)); s.chapterStats[s.lastChapterKey].timeMs=(s.chapterStats[s.lastChapterKey].timeMs||0)+dt; addReadTime(m,s.lastChapterKey,dt); }
+  s.lastTickAt=now; s.lastChapterKey=`${vv}:${cc}`;
+  s.to={v:vv,ch:cc,p:pp}; m.lastReadAt=now;
+  const id=`${vv}:${cc}:${pp}`; if(!s.pages.includes(id)) s.pages.push(id);
+  const ck=`${vv}:${cc}`; if(!s.chapters.includes(ck)) s.chapters.push(ck);
+  if(!s.chapterStats) s.chapterStats={}; if(!s.chapterStats[ck]) s.chapterStats[ck]={v:vv,ch:cc,pages:[],timeMs:0};
+  if(!s.chapterStats[ck].pages.includes(pp)) s.chapterStats[ck].pages.push(pp);
+  if(!m.readChapters) m.readChapters={};
+  const current=m.volumes.find(x=>x.num===vv)?.chapters.find(x=>x.num===cc);
+  if(current && current.pageCount && pp>=current.pageCount) m.readChapters[ck]=true;
+  if(m) m.activeReadingSession=s;
+  saveSoon();
+}
+function finishSession(){
+  if(!activeReadSession) return;
+  const s=activeReadSession, m=state.mangas.find(x=>x.id===s.mid);
+  if(m){ s.endedAt=Date.now(); s.durationMs=Math.max(0,s.endedAt-s.startedAt); s.uniquePages=(s.pages||[]).length; if(s.lastTickAt && s.lastChapterKey && s.chapterStats?.[s.lastChapterKey]){ const dt=Math.min(60000,Math.max(0,Date.now()-s.lastTickAt)); s.chapterStats[s.lastChapterKey].timeMs=(s.chapterStats[s.lastChapterKey].timeMs||0)+dt; addReadTime(m,s.lastChapterKey,dt); } s.chapterBreakdown=Object.values(s.chapterStats||{}).map(x=>({v:x.v,ch:x.ch,uniquePages:(x.pages||[]).length,timeMs:x.timeMs||0})); s.pages=undefined; s.chapterStats=undefined; delete m.activeReadingSession; resumePromptShownIds.delete(m.id); m.readingSessions.unshift(s); m.readingSessions=m.readingSessions.slice(0,30); save(); }
+  activeReadSession=null;
+}
+function renderReaderPinned(){
+  const m=currentManga(), el=document.getElementById('readerPinned'); if(!m||!el)return;
+  const pins=m.counters.filter(c=>c.pinned);
+  el.innerHTML=pins.map(c=>{const st=computeStats(m)[c.id]||{story:0,cover:0};return `<button class="reader-pin" data-reader-pin="${c.id}">${esc(c.name)} <b>${st.story+st.cover}</b></button>`;}).join('');
+  el.querySelectorAll('[data-reader-pin]').forEach(btn=>{
+    let timer=null, long=false;
+    const id=btn.dataset.readerPin;
+    btn.addEventListener('pointerdown',e=>{long=false;timer=setTimeout(()=>{long=true;decrementCounter(id);renderReaderPinned();},520);});
+    ['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,()=>clearTimeout(timer)));
+    btn.addEventListener('contextmenu',e=>{e.preventDefault();long=true;decrementCounter(id);renderReaderPinned();});
+    btn.addEventListener('click',()=>{if(!long)quickCount(id,false);long=false;});
+  });
+}
+function cycleFitMode(){
+  const m=currentManga(); if(!m)return;
+  const modes=['page','width','height','original'];
+  m.fitMode=modes[(modes.indexOf(m.fitMode||'page')+1)%modes.length];
+  save(); applyReaderSettings(); showToastText('Fit: '+m.fitMode);
+}
+function applyZoom(){
+  const spread=currentDisplayImg, ind=document.getElementById('zoomIndicator');
+  if(spread){spread.style.transform=`translate(${zoomState.x}px,${zoomState.y}px) scale(${zoomState.scale})`;spread.style.transformOrigin='center center';spread.style.zIndex=zoomState.scale>1?'8':'1';}
+  if(ind){ind.textContent=Math.round(zoomState.scale*100)+'%';ind.classList.toggle('show',zoomState.scale>1);}
+}
+function resetZoom(){zoomState.scale=1;zoomState.x=0;zoomState.y=0;applyZoom();}
+function setZoom(scale){zoomState.scale=Math.max(1,Math.min(4,scale));if(zoomState.scale===1){zoomState.x=0;zoomState.y=0;}applyZoom();}
+function showChapterTransition(){
+  const stage=document.getElementById('fsStage'),m=currentManga();if(!stage||!m)return;
+  stage.querySelector('.chapter-transition')?.remove();
+  const n=document.createElement('div');n.className='chapter-transition';n.innerHTML=`<b>${esc(m.title)}</b><div style="margin-top:4px">Vol ${m.volume} · Ch ${m.chapter}</div>`;stage.appendChild(n);setTimeout(()=>n.remove(),1450);
+}
+function openStructure(id){
+  const m=state.mangas.find(x=>x.id===id);if(!m)return;
+  const o=makeOverlay('structureModal','min(760px,96vw)'),box=o.querySelector('.modal');
+  box.innerHTML=`<div class="rs-head"><h3>${esc(m.title)} · Structure</h3><button class="btn" data-close-structure>✕</button></div><div class="rs-note">${m.volumes.length} volumes · ${m.volumes.reduce((n,v)=>n+v.chapters.length,0)} chapters</div>${m.volumes.map(v=>`<h3>Volume ${v.num}${volReadMs(m,v.num)>0?` <small class="dim">· ⏱ ${fmtDur(volReadMs(m,v.num))}</small>`:''}</h3><div class="structure-grid">${v.chapters.map(c=>`<div class="structure-thumb"><img loading="lazy" data-structure-mid="${m.id}" data-structure-vol="${v.num}" data-structure-ch="${c.num}" alt=""><div>Ch ${c.num}${c.name?' · '+esc(c.name):''}${chReadMs(m,v.num,c.num)>0?' · ⏱ '+fmtDur(chReadMs(m,v.num,c.num)):''}</div></div>`).join('')}</div>`).join('')||'<p class="dim">No chapter structure found.</p>'}<div class="actions"><a class="btn" target="_blank" rel="noopener" href="https://mangadex.org/titles?q=${encodeURIComponent(m.title)}">Search MangaDex ↗</a><button class="btn" data-close-structure>Close</button></div>`;
+  o.addEventListener('click',e=>{if(e.target.closest('[data-close-structure]'))o.remove();});
+  const io=new IntersectionObserver(entries=>entries.forEach(async en=>{if(!en.isIntersecting)return;io.unobserve(en.target);try{const mm=state.mangas.find(x=>x.id===en.target.dataset.structureMid);const vv=mm?.volumes.find(x=>x.num===Number(en.target.dataset.structureVol));const cc=vv?.chapters.find(x=>x.num===Number(en.target.dataset.structureCh));if(!mm||!cc||!cc.keys?.[0])return;const file=await getPageFile(mm,cc,1);en.target.src=URL.createObjectURL(file);}catch(e){}}),{root:box,rootMargin:'120px'});
+  box.querySelectorAll('[data-structure-mid]').forEach(img=>io.observe(img));
+}
+function jumpToPagePrompt(){
+  const m=currentManga(),ch=m&&curChapter(m);if(!m||!ch)return;
+  const val=prompt(`Jump to page (1–${ch.pageCount||'?'})`,String(m.page));if(val===null)return;
+  const p=Math.max(1,Math.min(ch.pageCount||99999,Math.floor(Number(val))));if(!Number.isFinite(p))return;
+  m.page=isDouble()?spreadStart(p):p;save();loadCurrentPage();
+}
+
 function renderStats(){
   const m = currentManga();
   if(!m){ document.getElementById('main').innerHTML = `<p class="hint">No manga selected.</p>`; return; }
@@ -1457,10 +1658,12 @@ function renderStats(){
               data-act="setLTR">Left-to-right (western)</button>
       <span class="dim" style="font-size:12px">Current: <b>${m.readingDirection === 'rtl' ? 'Right-to-left' : 'Left-to-right'}</b></span>
     </div>
+    <h3>Reading time</h3>${readTimeHTML(m)}
     <h3>Volume summaries</h3>${volSummaries}
     <h3>Totals — all volumes</h3>${totalsTable}
     <h3>Notes</h3>${notesTable}
     <h3>Bookmarks</h3>${bookmarkTable}
+    <h3>Reading sessions · Last 30</h3>${(m.readingSessions||[]).length ? `<div class="wrap"><table class="tbl"><thead><tr><th>Started</th><th>Duration</th><th>Pages</th><th>Chapters</th><th>Range</th></tr></thead><tbody>${m.readingSessions.slice(0,30).map(s=>`<tr><td>${fullTime(s.startedAt)}</td><td>${Math.round((s.durationMs||0)/60000)} min</td><td>${s.uniquePages||0}</td><td>${(s.chapters||[]).length}</td><td>Vol ${s.from?.v||'?'} Ch ${s.from?.ch||'?'} → Vol ${s.to?.v||'?'} Ch ${s.to?.ch||'?'}<div class="dim">${(s.chapterBreakdown||[]).map(x=>`Ch ${x.ch}: ${x.uniquePages}p / ${Math.round(x.timeMs/60000)}m`).join(' · ')}</div></td></tr>`).join('')}</tbody></table></div>` : '<p class="hint">No reading sessions yet.</p>'}
     <h3>Data</h3>
     <div class="savebar">
       <button class="btn" data-act="exportSave">💾 Save counters</button>
@@ -1505,6 +1708,8 @@ function renderReader(){
         <div class="fs-empty" id="fsEmpty">Loading…</div>
       </div>
       <div class="fs-edge" id="fsEdge"><div id="fsEdgeFill"></div></div>
+      <div class="reader-pinned" id="readerPinned"></div>
+      <div class="zoom-indicator" id="zoomIndicator">100%</div>
       <div class="fs-chrome top${readerUI.chromeVisible ? '' : ' hidden'}" id="fsTop">
         <div class="fs-top-left">
           <div class="fs-title">${esc(m.title)}</div>
@@ -1515,7 +1720,8 @@ function renderReader(){
           <button class="fs-btn big" id="fsJump" title="Jump to volume / chapter">📑 Vol ${m.volume} · Ch ${m.chapter}</button>
           <button class="fs-btn" id="fsBookmark" title="Bookmark">🔖</button>
           <button class="fs-btn" id="fsFullscreen" title="Fullscreen">⛶</button>
-          <button class="fs-btn" id="fsSettings" title="Reader settings">⚙</button>
+          <button class="fs-btn" id="fsFit" title="Cycle fit mode (F)">Fit</button>
+          <button class="fs-btn" id="fsSettings" title="Reader settings (S)">⚙</button>
           <button class="fs-btn" id="fsDrawerBtn" title="Counter">☰</button>
         </div>
       </div>
@@ -1541,7 +1747,9 @@ function renderReader(){
       </div>
     </div>
   `;
+  ensureSession(m);
   wireReaderEvents();
+  renderReaderPinned();
   applyReaderSettings();
   loadCurrentPage();
   updateReaderChrome();
@@ -1565,12 +1773,19 @@ const pageDims = new Map();       /* cache key -> is landscape */
 const preloadDone = new Set();
 let preloadToken = 0;
 let stripState = null;
+let activeReadSession = null;
+let zoomState = {scale:1,x:0,y:0,pointers:new Map(),startDist:0,startScale:1,lastTap:0};
+let libraryHideRead = false;
+let libraryShowCovers = false;
+let jumpHideRead = false;
+let resumePromptShownIds = new Set();
 
 function curChapter(m){
   const vol = m.volumes.find(v => v.num === m.volume);
   return vol ? (vol.chapters.find(c => c.num === m.chapter) || null) : null;
 }
 function saveSoon(){
+  setSaveIndicator(true);
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => { saveTimer = null; save(); }, 500);
 }
@@ -1628,6 +1843,7 @@ function updateReaderMeta(){
       pageTxt = `p. ${m.page} / ${total}`;
       if(isDouble() && curSpreadLen > 1) pageTxt = `p. ${m.page}–${m.page + curSpreadLen - 1} / ${total}`;
     }
+    meta.title = 'Long-press to jump to a page';
     meta.innerHTML = `<span class="fs-vc">Vol ${m.volume} · Ch ${m.chapter}</span>` +
       (pageTxt ? ` <span class="fs-pg">${pageTxt}</span>` : '');
   }
@@ -1659,6 +1875,8 @@ function applyReaderSettings(){
   if(rs.dim > 0) f.push(`brightness(${(1 - rs.dim / 100).toFixed(2)})`);
   fs.style.setProperty('--pg-filter', f.length ? f.join(' ') : 'none');
   fs.dataset.progress = rs.progressPos;
+  fs.dataset.fit = (m && ['page','width','height','original'].includes(m.fitMode)) ? m.fitMode : 'page';
+  const fitBtn = document.getElementById('fsFit'); if(fitBtn) fitBtn.textContent = (fs.dataset.fit || 'page').toUpperCase();
   fs.classList.toggle('is-strip', rs.strip);
   fs.classList.toggle('prog-rtl', !rs.strip && !!m && m.readingDirection !== 'ltr');
   const strip = document.getElementById('fsStrip');
@@ -1791,6 +2009,7 @@ function emptyStateHTML(m, msg){
     </div>`;
 }
 async function loadCurrentPage(){
+  resetZoom();
   const m = currentManga();
   if(!m) return;
   const stage = document.getElementById('fsStage');
@@ -1809,6 +2028,7 @@ async function loadCurrentPage(){
   const total = ch.pageCount || 0;
   if(total && m.page > total){ m.page = total; saveSoon(); }
   if(m.page < 1) m.page = 1;
+  recordReadingPage();
   updateReaderMeta();
   if(isStrip()){
     clearPaged();
@@ -1855,6 +2075,7 @@ async function loadCurrentPage(){
     stage.appendChild(w);
     currentDisplayImg = w;
     curSpreadLen = pages.length;
+    if(pages.length>1) recordReadingPage(m.volume,m.chapter,pages[1]);
     updateReaderMeta();
     setProgress(total ? (m.page + pages.length - 1) / total : 0);
     if('requestIdleCallback' in window){
@@ -1914,6 +2135,8 @@ function goPage(delta){
     }
   } else m.page = p;
   save();
+  recordReadingPage();
+  if(p<1 || p>totalPages) showChapterTransition();
   loadCurrentPage();
 }
 function jumpTo(v, c){
@@ -1921,6 +2144,7 @@ function jumpTo(v, c){
   if(!m) return;
   m.volume = v; m.chapter = c; m.page = 1;
   lastNavDelta = 0;
+  recordReadingPage();
   save();
   loadCurrentPage();
 }
@@ -1932,6 +2156,7 @@ function goChapterRel(d){
   m.volume = n.vol.num; m.chapter = n.ch.num;
   m.page = d < 0 ? (n.ch.pageCount || 1) : 1;
   lastNavDelta = 0;
+  showChapterTransition(); recordReadingPage();
   save();
   loadCurrentPage();
   return true;
@@ -2025,7 +2250,7 @@ function renderStrip(m, ch){
     }finally{ st.loading.delete(i); }
   };
   st.io = new IntersectionObserver(es => {
-    es.forEach(e => { if(e.isIntersecting) st.loadPage(parseInt(e.target.dataset.p, 10)); });
+    es.forEach(e => { if(e.isIntersecting){ const pg=parseInt(e.target.dataset.p,10); st.loadPage(pg); if(e.intersectionRatio>.45){ m.page=pg; recordReadingPage(m.volume,m.chapter,pg); updateReaderMeta(); setProgress(total?pg/total:0); } } });
   }, { root: strip, rootMargin: '200% 0px' });
   wraps.forEach(w => st.io.observe(w));
 
@@ -2263,28 +2488,39 @@ function openJumpMenu(){
       `<button class="jm-chip${v.num === selVol ? ' on' : ''}${v.num === m.volume ? ' cur' : ''}"
                data-jvol="${v.num}">Vol ${v.num}<small>${v.chapters.length} ch</small></button>`).join('');
     const vol = m.volumes.find(v => v.num === selVol);
-    const items = (vol ? vol.chapters : []).map(ch => {
+    const items = (vol ? vol.chapters : []).filter(ch => !jumpHideRead || !m.readChapters?.[`${vol.num}:${ch.num}`]).map(ch => {
       const cur = vol.num === m.volume && ch.num === m.chapter;
       const nm = getChapterName(m, ch);
-      return `<div class="chapter-item${cur ? ' current' : ''}" data-jv="${vol.num}" data-jc="${ch.num}">
+      const read = !!m.readChapters?.[`${vol.num}:${ch.num}`];
+      const firstKey = ch.keys?.[0] || '';
+      return `<div class="chapter-item${cur ? ' current' : ''}${read ? ' is-read' : ''}" data-jv="${vol.num}" data-jc="${ch.num}" data-search="${esc(('chapter '+ch.num+' '+nm).toLowerCase())}">
+        <img class="ci-cover" loading="lazy" data-jump-mid="${m.id}" data-jump-vol="${vol.num}" data-jump-ch="${ch.num}" alt="">
         <span class="ci-ch">Ch ${ch.num}</span>
         <span class="ci-name">${esc(nm)}</span>
-        <span class="ci-pages">${ch.pageCount || 0}p</span></div>`;
+        <span class="ci-pages">${ch.pageCount || 0}p</span><span class="read-state">${read ? 'Read' : 'Unread'}</span>
+        <button class="icon" data-read-toggle="${vol.num}:${ch.num}" title="Toggle read">${read ? '✓' : '○'}</button></div>`;
     }).join('') || `<div class="dim" style="padding:10px;font-size:12px">No chapters in this volume.</div>`;
     box.innerHTML = `<h3>Jump to volume / chapter</h3>
+      <input class="jm-search" id="jmSearch" type="search" placeholder="Search chapters…" autocomplete="off">
       <div class="jm-now">Reading: <b>Vol ${m.volume} · Ch ${m.chapter}</b>${curName ? ' — ' + esc(curName) : ''}</div>
       <div class="jm-chips">${chips}</div>
-      <div class="chapter-list">${items}</div>
-      <div class="actions"><button class="btn" data-jclose>Close</button></div>`;
+      <div class="actions" style="justify-content:space-between"><button class="btn" data-mark-before>✓ Mark up to current read</button><button class="btn" data-hide-read>${jumpHideRead ? 'Show read' : 'Hide read'}</button><button class="btn" data-show-covers>${libraryShowCovers ? 'Hide covers' : 'Show covers'}</button><button class="btn" data-jclose>Close</button></div>
+      <div class="chapter-list">${items}</div>`;
     box.querySelector('.chapter-item.current')?.scrollIntoView({ block: 'center' });
+    const search=box.querySelector('#jmSearch'); if(search){ search.addEventListener('input',()=>{ const q=search.value.trim().toLowerCase(); box.querySelectorAll('.chapter-item').forEach(it=>it.style.display=it.dataset.search.includes(q)?'':'none'); }); setTimeout(()=>search.focus(),30); }
+    if(libraryShowCovers){box.querySelectorAll('.chapter-item').forEach(it=>it.classList.add('show-cover'));const io=new IntersectionObserver(entries=>entries.forEach(async en=>{if(!en.isIntersecting)return;io.unobserve(en.target);try{const mm=currentManga(),vv=mm.volumes.find(x=>x.num===Number(en.target.dataset.jumpVol)),cc=vv?.chapters.find(x=>x.num===Number(en.target.dataset.jumpCh));if(!cc?.keys?.[0])return;const f=await getPageFile(mm,cc,1);en.target.src=URL.createObjectURL(f);}catch(e){}}),{root:box.querySelector('.chapter-list'),rootMargin:'100px'});box.querySelectorAll('[data-jump-mid]').forEach(img=>io.observe(img));}
   };
   draw();
   o.addEventListener('click', e => {
     if(e.target.closest('[data-jclose]')){ o.remove(); return; }
+    if(e.target.closest('[data-mark-before]')){ const flat=chapterFlat(m); for(const x of flat){ if(x.vol.num < m.volume || (x.vol.num===m.volume && x.ch.num<=m.chapter)) m.readChapters[`${x.vol.num}:${x.ch.num}`]=true; } save(); draw(); return; }
+    if(e.target.closest('[data-show-covers]')){libraryShowCovers=!libraryShowCovers;draw();return;}
+    if(e.target.closest('[data-hide-read]')){jumpHideRead=!jumpHideRead;draw();return;}
+    const rt=e.target.closest('[data-read-toggle]'); if(rt){ const key=rt.dataset.readToggle; m.readChapters[key]=!m.readChapters[key]; save(); draw(); return; }
     const vb = e.target.closest('[data-jvol]');
     if(vb){ selVol = parseFloat(vb.dataset.jvol); draw(); return; }
-    const it = e.target.closest('[data-jv]');
-    if(it){ jumpTo(parseFloat(it.dataset.jv), parseFloat(it.dataset.jc)); o.remove(); }
+    const it = e.target.closest('.chapter-item[data-jv]');
+    if(it && !e.target.closest('button')){ jumpTo(parseFloat(it.dataset.jv), parseFloat(it.dataset.jc)); o.remove(); }
   });
 }
 
@@ -2294,6 +2530,7 @@ function rsValue(k){
     const m = currentManga();
     return rs.strip ? 'strip' : (m && m.readingDirection === 'ltr' ? 'ltr' : 'rtl');
   }
+  if(k === 'fitMode'){ const m=currentManga(); return m?.fitMode || 'page'; }
   return rs[k];
 }
 function setDirection(v){
@@ -2312,6 +2549,7 @@ function applySetting(k, v){
   const m = currentManga();
   if(!m) return;
   if(k === 'dir'){ setDirection(v); return; }
+  if(k === 'fitMode'){ m.fitMode=v; save(); applyReaderSettings(); return; }
   rs[k] = v;
   rs = sanitizeRS(rs);
   saveRS();
@@ -2348,6 +2586,9 @@ function settingsHTML(){
       </div>
     </div>
 
+    <div class="rs-sec" data-show="paged"><div class="rs-lbl">Page fit</div>
+      ${seg('fitMode', [['page','Page'],['width','Width'],['height','Height'],['original','Original']])}
+    </div>
     <div class="rs-sec" data-show="paged"><div class="rs-lbl">Page layout</div>
       ${seg('layout', [['single', '▯ Single'], ['double', '▯▯ Double']])}
     </div>
@@ -2457,29 +2698,61 @@ function wireReaderEvents(){
   if(fs.dataset.bound === '1') return;
   fs.dataset.bound = '1';
 
+  let zoneTapTimer=null, zoneLastTap=0;
   fs.querySelectorAll('.fs-zone').forEach(z => {
     z.addEventListener('click', () => {
       if(Date.now() - lastSwipeTime < 400) return;
-      const m = currentManga();
-      if(!m) return;
-      const rtl = m.readingDirection !== 'ltr';
+      const m = currentManga(); if(!m) return;
       const zone = z.dataset.zone;
-      if(zone === 'm'){ middleTap(); return; }
-      const advance = (zone === 'l') === rtl;
-      goPage(advance ? 1 : -1);
+      const now = Date.now();
+      /* Zoomed in: side taps never turn pages; a double-tap zooms back out. */
+      if(zoomState.scale>1){
+        if(now-zoneLastTap<300){zoneLastTap=0;setZoom(1);} else zoneLastTap=now;
+        return;
+      }
+      /* Left/right zones turn the page immediately (no double-tap wait). */
+      if(zone === 'l' || zone === 'r'){
+        const rtl = m.readingDirection !== 'ltr';
+        goPage(((zone === 'l') === rtl) ? 1 : -1);
+        return;
+      }
+      /* Middle zone: double-tap zooms in, single tap toggles the UI. */
+      if(now-zoneLastTap<280){clearTimeout(zoneTapTimer);zoneTapTimer=null;zoneLastTap=0;setZoom(2);return;}
+      zoneLastTap=now;
+      zoneTapTimer=setTimeout(()=>{
+        zoneLastTap=0;zoneTapTimer=null;
+        if(zoomState.scale>1) return;
+        middleTap();
+      },280);
     });
   });
 
-  let touchStartX = 0, touchStartY = 0, touchStartT = 0;
+  let touchStartX = 0, touchStartY = 0, touchStartT = 0, zoomedAtTouchStart = false;
   const stage = document.getElementById('fsStage');
+  const pts=zoomState.pointers;
+  stage.addEventListener('pointerdown',e=>{
+    pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pts.size===2){const a=[...pts.values()];zoomState.startDist=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);zoomState.startScale=zoomState.scale;}
+  });
+  stage.addEventListener('pointermove',e=>{
+    if(!pts.has(e.pointerId))return; const prev=pts.get(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pts.size===2){const a=[...pts.values()];const d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);if(zoomState.startDist>0)setZoom(zoomState.startScale*d/zoomState.startDist);}
+    else if(zoomState.scale>1){zoomState.x+=e.clientX-prev.x;zoomState.y+=e.clientY-prev.y;applyZoom();}
+  });
+  const endPointer=e=>{pts.delete(e.pointerId);if(pts.size<2)zoomState.startDist=0;};
+  stage.addEventListener('pointerup',endPointer);stage.addEventListener('pointercancel',endPointer);
+  stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')endPointer(e);});
+  stage.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();setZoom(zoomState.scale+(e.deltaY<0?.15:-.15));},{passive:false});
   stage.addEventListener('touchstart', e => {
     if(e.touches.length !== 1) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     touchStartT = Date.now();
+    zoomedAtTouchStart = zoomState.scale > 1;
   }, {passive: true});
   stage.addEventListener('touchend', e => {
     if(isStrip()) return;
+    if(zoomedAtTouchStart || zoomState.scale > 1) return;
     if(e.changedTouches.length !== 1) return;
     const dx = e.changedTouches[0].clientX - touchStartX;
     const dy = e.changedTouches[0].clientY - touchStartY;
@@ -2512,7 +2785,9 @@ function wireReaderEvents(){
   });
   document.getElementById('fsPlay')?.addEventListener('click', toggleAuto);
   document.getElementById('fsJump')?.addEventListener('click', openJumpMenu);
+  const meta=document.getElementById('fsMeta'); if(meta){let hold;meta.addEventListener('pointerdown',()=>{hold=setTimeout(jumpToPagePrompt,650);});['pointerup','pointerleave','pointercancel'].forEach(k=>meta.addEventListener(k,()=>clearTimeout(hold)));}
   document.getElementById('fsSettings')?.addEventListener('click', openSettingsModal);
+  document.getElementById('fsFit')?.addEventListener('click', cycleFitMode);
   document.getElementById('fsDrawerBtn')?.addEventListener('click', () => {
     readerUI.drawerOpen = !readerUI.drawerOpen;
     updateReaderChrome();
@@ -2580,6 +2855,7 @@ function addEvent(cid, isCover, note, silent){
   m.events.push(ev);
   save();
   if(!silent) showToast(cid, isCover, m);
+  if(state.view === 'reader') renderReaderPinned();
   if(state.view === 'counter'){
     statsMap = computeStats(m);
     lastSeenMap = computeLastSeen(m);
@@ -2595,6 +2871,7 @@ function decrementCounter(cid){
       m.events.splice(i, 1);
       save();
       if(state.view === 'counter') renderCounter();
+      if(state.view === 'reader') renderReaderPinned();
       return;
     }
   }
@@ -2607,6 +2884,7 @@ function undoLast(){
     save();
     if(state.view === 'counter') renderCounter();
     if(state.view === 'stats') renderStats();
+    if(state.view === 'reader') renderReaderPinned();
   }
 }
 function refreshCounterCard(cid){
@@ -2882,7 +3160,21 @@ function mergeVolumes(volumesList){
   for(const v of volumesList){
     if(!map.has(v.num)) map.set(v.num, { num: v.num, chapters: [] });
     const target = map.get(v.num);
-    for(const ch of v.chapters) target.chapters.push(ch);
+    for(const ch of v.chapters){
+      const existing=target.chapters.find(x=>Number(x.num)===Number(ch.num));
+      if(existing && Array.isArray(existing._files) && Array.isArray(ch._files)){
+        existing._files.push(...ch._files); existing.pageCount=existing._files.length;
+        if(!existing.name && ch.name) existing.name=ch.name;
+      } else if(existing){
+        // Keep a unique decimal chapter slot rather than silently overwriting a duplicate.
+        let n=Number(ch.num), bump=1; while(target.chapters.some(x=>Number(x.num)===n)) n=Number(ch.num)+bump++/10;
+        target.chapters.push({...ch,num:Number(n.toFixed(3))});
+      } else target.chapters.push({...ch});
+    }
+  }
+  for(const v of map.values()){
+    v.chapters.sort((a,b)=>a.num-b.num);
+    v.chapters.forEach(ch=>{if(Array.isArray(ch._files)){ch._files.sort((a,b)=>{const pa=parsePageNum(a.name),pb=parsePageNum(b.name);if(pa!==pb)return pa-pb;return a.name.localeCompare(b.name,undefined,{numeric:true});});ch.pageCount=ch._files.length;}});
   }
   return [...map.values()].sort((a,b) => a.num - b.num);
 }
@@ -2923,9 +3215,10 @@ function openReorgModal(){
   const totalChapters = m.volumes.reduce((s,v) => s + v.chapters.length, 0);
   info.innerHTML = `<b>${esc(m.title)}</b> — ${m.volumes.length} vol, ${totalChapters} ch, ${m.totalPages} pages`;
   if(m.kind === 'cbz' && m.estBytes) info.innerHTML += `<br><span class="dim">Upload: ${fmtBytes(m.estBytes)}</span>`;
-  if(m.kind !== 'folder' && m.estBytes > state.storageCap){
+  /* No upload size cap. Large imports just get a heads-up. */
+  if(m.kind !== 'folder' && m.estBytes > 1024*1024*1024){
     warn.style.display = 'block';
-    warn.textContent = `This upload is ${fmtBytes(m.estBytes)}, over the ${fmtBytes(state.storageCap)} cap.`;
+    warn.textContent = `Large upload (${fmtBytes(m.estBytes)}). Saving may take a while, so keep this tab open until it finishes.`;
   } else warn.style.display = 'none';
   const tree = document.getElementById('reorgTree');
   tree.innerHTML = m.volumes.map((v, vi) => {
@@ -2994,8 +3287,9 @@ async function saveReorg(){
       const chapters = [];
       for(const ch of v.chapters){
         const keys = [];
+        let fileIndex=0;
         for(const f of ch._files){
-          const key = `${manga.id}/${v.num}/${ch.num}/${f.name}`;
+          const key = `${manga.id}/${v.num}/${ch.num}/${String(fileIndex++).padStart(5,'0')}_${f.name}`;
           await idbPut(key, new Blob([f.data], { type: imageMime(f.name) }));
           keys.push(key);
         }
@@ -3036,6 +3330,7 @@ function imageMime(name){
 async function openManga(id){
   const m = state.mangas.find(x => x.id === id);
   if(!m) return;
+  if(activeReadSession) finishSession();
   state.currentMangaId = id;
   save();
   pageCache.clear();
@@ -3291,6 +3586,16 @@ document.addEventListener('keydown', e => {
   if(tag === 'input' || tag === 'textarea' || t.isContentEditable) return;
   const m = currentManga();
   if(state.view === 'reader'){
+    if(e.key.toLowerCase()==='f'){e.preventDefault();cycleFitMode();return;}
+    if(e.key.toLowerCase()==='s'){e.preventDefault();openSettingsModal();return;}
+    if(e.key.toLowerCase()==='j'){e.preventDefault();openJumpMenu();return;}
+    if(e.key.toLowerCase()==='b'){e.preventDefault();document.getElementById('fsBookmark')?.click();return;}
+    if(e.key.toLowerCase()==='d'){e.preventDefault();readerUI.drawerOpen=!readerUI.drawerOpen;updateReaderChrome();return;}
+    if(e.key==='+'||e.key==='='){e.preventDefault();setZoom(zoomState.scale+.2);return;}
+    if(e.key==='-'){e.preventDefault();setZoom(zoomState.scale-.2);return;}
+    if(e.key==='0'){e.preventDefault();resetZoom();return;}
+    if(e.key==='Home'){e.preventDefault();const mm=currentManga();if(mm){mm.page=1;save();loadCurrentPage();}return;}
+    if(e.key==='End'){e.preventDefault();const mm=currentManga(),cc=mm&&curChapter(mm);if(mm&&cc){mm.page=cc.pageCount||1;save();loadCurrentPage();}return;}
     const rtl = m && m.readingDirection !== 'ltr';
     if(isStrip()){
       if(e.code === 'ArrowDown' || e.code === 'PageDown' || e.code === 'ArrowRight'){ e.preventDefault(); stripScrollPage(1); return; }
@@ -3380,11 +3685,11 @@ document.getElementById('subbar').addEventListener('click', e => {
 function handleMainAction(e){
   const btn = e.target.closest('[data-act]');
   if(btn){
-    if(btn.dataset._locked === '1') return;
-    btn.dataset._locked = '1';
-    setTimeout(() => { if(btn.dataset) btn.dataset._locked = ''; }, 300);
     const act = btn.dataset.act;
     if(act === 'addManga'){ addMangaFlow(); return; }
+    if(act === 'structure'){ openStructure(btn.dataset.id); return; }
+    if(act === 'favoriteManga'){ const mm=state.mangas.find(x=>x.id===btn.dataset.id); if(mm){mm.favorite=!mm.favorite;save();renderLibrary();} return; }
+    if(act === 'toggleHideRead'){ libraryHideRead=!libraryHideRead;renderLibrary();return; }
     if(act === 'openManga'){ openManga(btn.dataset.id); return; }
     if(act === 'renameManga'){ renameManga(btn.dataset.id); return; }
     if(act === 'deleteManga'){ deleteManga(btn.dataset.id); return; }
@@ -3411,15 +3716,7 @@ function handleMainAction(e){
   if(mangaCard && !e.target.closest('button')){ openManga(mangaCard.dataset.id); }
 }
 document.getElementById('main').addEventListener('click', handleMainAction);
-/* Fallback for mobile: fire the same action on touchstart */
-document.getElementById('main').addEventListener('touchstart', e => {
-  const btn = e.target.closest('.card [data-act], .manga-actions [data-act], .savebar [data-act], .backup-banner [data-act]');
-  if(!btn) return;
-  if(btn.dataset._locked === '1') return;
-  btn.dataset._locked = '1';
-  setTimeout(() => { if(btn.dataset) btn.dataset._locked = ''; }, 300);
-  handleMainAction(e);
-}, {passive: true});
+document.getElementById('main').addEventListener('dblclick',e=>{const c=e.target.closest('.manga-card');if(c&&!e.target.closest('button'))openManga(c.dataset.id);});
 document.addEventListener('click', e => {
   const btn = e.target.closest('[data-ctab]');
   if(!btn) return;
@@ -3443,8 +3740,11 @@ document.getElementById('noteInput').addEventListener('keydown', e => {
   if(e.key === 'Escape'){ e.preventDefault(); closeNoteModal(); }
 });
 
-window.addEventListener('pagehide', flushSave);
+window.addEventListener('pagehide', ()=>{ if(activeReadSession){const mm=state.mangas.find(x=>x.id===activeReadSession.mid);if(mm)mm.activeReadingSession=activeReadSession;} flushSave(); });
 applyTheme(currentTheme);
+setSaveIndicator(false);
+document.body.classList.toggle('reading', state.view === 'reader');
+document.getElementById('topnav').style.display = state.view === 'reader' ? 'none' : '';
 renderTopTabs();
 renderSubbar();
 renderMain();
