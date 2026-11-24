@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e1015">
 <link rel="icon" type="image/webp" href="https://i.ibb.co.com/Fq7XY1Rj/148855716-p4-master1200-2.webp">
-<link rel="apple-touch-icon" href="https://i.ibb.co.com/Fq7XY1Rj/148855716-p4-master1200-2.webp">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ErlanYomi">
 <title>ErlanYomi</title>
 <style>
   :root{
@@ -3986,18 +3990,20 @@ const HELP_SECTIONS = [
   { id:'counter', title:'🔢 Counters', body:`<ul><li>Counters track anything you like while you read, for example how often a character shows up.</li><li>In the reader, open <b>☰</b> to see counters. <b>Pin</b> a counter to get a quick chip in the reader.</li><li>Each count saves the volume, chapter and page. <b>Undo</b> (top bar) removes the last count.</li><li>Counters belong to one manga. In the Counter tab, <b>Copy counters from another manga</b> reuses names, tabs and keys from a series you already set up (counts are not copied).</li><li>On desktop, each counter has a key. Press it to add +1. <kbd>Shift</kbd>+key counts it as a cover appearance, <kbd>Alt</kbd>+key adds a note, <kbd>Alt</kbd>+<kbd>Shift</kbd>+key subtracts 1.</li></ul>` },
   { id:'stats', title:'📊 Stats and reading time', body:`<ul><li><b>Reading time</b> is added up per chapter, then per volume, then per manga. For example five chapters of 5 minutes make a 25 minute volume.</li><li>Time only counts while you are in the reader, and a single page counts for at most 1 minute so leaving a page open does not inflate it.</li><li>Stats also shows volume summaries, totals, notes, bookmarks and your last 30 reading sessions.</li><li>Chapters count as read when you reach their last page. You can also mark chapters read from Structure.</li></ul>` },
   { id:'keys', title:'⌨️ Keyboard shortcuts (reader)', body:`<ul><li><kbd>←</kbd> / <kbd>→</kbd> turn pages (direction follows reading order), <kbd>Space</kbd> next, <kbd>Shift</kbd>+<kbd>Space</kbd> previous</li><li><kbd>Home</kbd> / <kbd>End</kbd> first / last page of the chapter</li><li><kbd>F</kbd> fit mode, <kbd>J</kbd> jump menu, <kbd>S</kbd> settings, <kbd>B</kbd> bookmark, <kbd>D</kbd> counter drawer</li><li><kbd>+</kbd> / <kbd>−</kbd> / <kbd>0</kbd> zoom in / out / reset</li><li><kbd>Esc</kbd> back to the library, <kbd>Backspace</kbd> or <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo the last count</li></ul>` },
+  { id:'install', title:'📲 Install as an app', body:`<ul><li><b>Android (Chrome):</b> open the ⋮ menu, then <b>Install app</b> (or <b>Add to Home screen</b>). It then opens full-screen from your home screen like a normal app. If a <b>📲 Install app</b> button shows at the top of this guide, you can use that too.</li><li><b>iPhone / iPad (Safari):</b> tap Share, then <b>Add to Home Screen</b>.</li><li><b>Desktop (Chrome / Edge):</b> use the install icon at the right of the address bar.</li><li>The app opens even without internet. Your library is stored in the browser, so it is the same data you see in the browser. Export a backup before installing, just to be safe.</li><li>When a new version is published, the app picks it up the next time you open it with internet.</li></ul>` },
   { id:'data', title:'💾 Your data and backups', body:`<ul><li>Everything is stored in this browser (localStorage and IndexedDB). Nothing is uploaded anywhere.</li><li>Clearing site data, or using a different browser, means starting empty. <b>Export</b> a save from the Stats page regularly. CSV export is there too.</li><li>Uploaded files use browser storage, so a very large library can hit your browser's storage limit. Linked folders do not.</li><li>Themes are in the top bar (the colored squares).</li></ul>` }
 ];
 function openHelp(openId){
   const o = makeOverlay('helpModal','min(520px,94vw)');
   const box = o.querySelector('.modal');
   box.innerHTML = `<h3>ErlanYomi guide</h3>
-    <div class="actions" style="justify-content:flex-start;margin:0"><button class="btn" data-help-tour>▶ Replay tutorial</button></div>
+    <div class="actions" style="justify-content:flex-start;margin:0"><button class="btn" data-help-tour>▶ Replay tutorial</button>${deferredInstall?'<button class="btn primary" data-help-install>📲 Install app</button>':''}</div>
     <div>${HELP_SECTIONS.map(sec => `<details class="help-sec" data-sec="${sec.id}"${sec.id===openId?' open':''}><summary>${sec.title}</summary><div class="help-body">${sec.body}</div></details>`).join('')}</div>
     <div class="actions"><button class="btn primary" data-help-close>Close</button></div>`;
   box.addEventListener('click', e => {
     if(e.target.closest('[data-help-close]')) o.remove();
     else if(e.target.closest('[data-help-tour]')){ o.remove(); openTutorial(0); }
+    else if(e.target.closest('[data-help-install]')){ o.remove(); installApp(); }
   });
 }
 function maybeShowReaderHint(){
@@ -4019,6 +4025,19 @@ document.addEventListener('keydown', e => {
   const o = document.getElementById('helpModal') || document.getElementById('tourModal');
   if(o){ e.preventDefault(); e.stopImmediatePropagation(); if(o.id==='tourModal') closeTutorial(); else o.remove(); }
 }, true);
+
+/* ===== Install as an app (PWA) ===== */
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
+window.addEventListener('appinstalled', () => { deferredInstall = null; showToastText('📲 ErlanYomi installed'); });
+async function installApp(){
+  if(!deferredInstall){ openHelp('install'); return; }
+  const ev = deferredInstall; deferredInstall = null;
+  try{ ev.prompt(); await ev.userChoice; }catch(_){}
+}
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW failed', e)); });
+}
 
 window.addEventListener('pagehide', ()=>{ if(activeReadSession){const mm=state.mangas.find(x=>x.id===activeReadSession.mid);if(mm)mm.activeReadingSession=activeReadSession;} flushSave(); });
 applyTheme(currentTheme);
