@@ -615,6 +615,52 @@
   .jm-chip.cur::before{content:"● "; color:var(--accent)}
   .jm-chip.on{border-color:var(--accent);
               background:color-mix(in srgb, var(--accent) 18%, var(--panel2))}
+
+  /* Help & tutorial */
+  .help-steps{display:flex;gap:6px;justify-content:center;margin:2px 0 0}
+  .help-steps i{width:7px;height:7px;border-radius:50%;background:var(--line);display:block}
+  .help-steps i.on{background:var(--accent)}
+  .help-body{font-size:13px;line-height:1.55;color:var(--txt)}
+  .help-body p{margin:0 0 8px}
+  .help-body ul{margin:0 0 8px;padding-left:18px}
+  .help-body li{margin:3px 0}
+  .help-body kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:11px}
+  .help-emoji{font-size:34px;text-align:center}
+  .help-sec{border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin:0 0 8px}
+  .help-sec summary{cursor:pointer;padding:10px 12px;font-weight:700;font-size:13px}
+  .help-sec .help-body{padding:0 12px 6px}
+
+  /* Structure view */
+  .st-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px}
+  .st-tile{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+  .st-tile b{display:block;font-size:17px}
+  .st-tile span{font-size:11px;color:var(--dim)}
+  .st-bar{height:6px;background:var(--panel2);border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+  .st-bar>div{height:100%;background:var(--accent)}
+  .st-controls{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:11px;color:var(--dim)}
+  .st-group{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+  .st-chip{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:999px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer}
+  .st-chip.on{border-color:var(--accent);color:var(--accent);font-weight:700}
+  .st-vol{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .st-vtoggle{background:none;border:0;color:var(--txt);font:inherit;font-weight:800;font-size:15px;cursor:pointer;padding:2px 0}
+  .st-vmeta{font-size:11px;color:var(--dim);flex:1;min-width:120px}
+  .st-mini{font-size:11px;padding:4px 8px}
+  .st-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--st-min,120px),1fr));gap:9px;margin-top:8px}
+  .st-card{background:var(--panel2);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:11px;cursor:pointer;display:flex;flex-direction:column}
+  .st-card.cur{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+  .st-card.read .st-img{opacity:.55}
+  .st-img{position:relative}
+  .st-img img{display:block;width:100%;aspect-ratio:2/3;object-fit:cover;background:var(--bg)}
+  .st-badge{position:absolute;top:5px;left:5px;display:flex;gap:4px}
+  .st-badge i{font-style:normal;background:rgba(0,0,0,.7);color:#fff;border-radius:6px;padding:1px 6px;font-size:10px;font-weight:700}
+  .st-info{padding:6px 7px;flex:1}
+  .st-meta{color:var(--dim);margin-top:2px;line-height:1.4}
+  .st-readbtn{margin:0 6px 6px;background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;font:inherit;font-size:11px;padding:4px;cursor:pointer}
+  .st-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+  .st-list .st-card{flex-direction:row;align-items:center;gap:8px;padding:6px}
+  .st-list .st-img{width:38px;flex:none}
+  .st-list .st-readbtn{margin:0;flex:none;padding:5px 8px}
+  .st-list .st-card.read .st-info{opacity:.65}
 </style>
 </head>
 <body>
@@ -629,6 +675,7 @@
   <div class="topright">
     <div class="theme-picker" id="themePicker"></div>
     <button class="btn" id="undoBtn" title="Undo last count">↶ Undo</button>
+    <button class="btn" id="helpBtn" title="Help &amp; guide" aria-label="Help and guide">?</button>
   </div>
 </header>
 
@@ -670,7 +717,7 @@
         <input type="radio" name="addmode" value="folder" checked>
         <div>
           <div class="title">🔗 Link a folder</div>
-          <div class="sub">Images stay on disk — no copy. Chrome / Edge on desktop only.</div>
+          <div class="sub">Images stay on disk — no copy. Chrome / Edge on desktop only. Best for big libraries.</div>
         </div>
       </label>
       <label>
@@ -688,6 +735,7 @@
         </div>
       </label>
     </div>
+    <div class="hint" style="margin:0;font-size:11px">Tip: name chapters like “Vol 1 Ch 3” (or use one folder per chapter) so volumes and chapters are detected. You can fix the numbers and names in the next step. <a href="#" data-open-help="library" style="color:var(--accent)">More help</a></div>
     <div class="actions">
       <button class="btn" id="addCancel">Cancel</button>
       <button class="btn primary" id="addContinue">Continue</button>
@@ -795,21 +843,15 @@ function emptyManga(title){
   };
 }
 function defaultLibrary(){
-  const m = emptyManga('I Want to Love You Till Your Dying Day');
-  m.counters = [
-    { id:'mimi',      name:'Mimi',             tab:'characters', key:'q' },
-    { id:'sheena',    name:'Sheena',           tab:'characters', key:'w' },
-    { id:'kiss',      name:'Kiss scene',       tab:'moments',    key:'q' },
-    { id:'moment',    name:'Important moment', tab:'moments',    key:'w' },
-    { id:'flashback', name:'Flashback',        tab:'events',     key:'q' },
-    { id:'reveal',    name:'Reveal',           tab:'events',     key:'w' },
-  ];
+  /* No built-in manga or counters. Only data from very old versions is carried over. */
+  let m = null;
   try{
     for(const key of LS_KEY_MIGRATE){
       const raw = localStorage.getItem(key);
       if(!raw) continue;
       const v = JSON.parse(raw);
       if(v && Array.isArray(v.counters) && Array.isArray(v.events)){
+        m = emptyManga('My manga');
         m.counters = v.counters;
         m.events = v.events.map(e => ({
           cid: e.cid, v: e.v || 1, ch: e.ch || 1, p: e.p || 1,
@@ -834,8 +876,8 @@ function defaultLibrary(){
     }
   }catch(e){ console.warn('migrate failed', e); }
   return {
-    mangas: [m],
-    currentMangaId: m.id,
+    mangas: m ? [m] : [],
+    currentMangaId: m ? m.id : null,
     storageCap: DEFAULT_STORAGE_CAP,
     view: 'library',
     activeCounterTab: 'characters'
@@ -1236,8 +1278,8 @@ async function renderLibrary(){
       </div>
       <div class="manga-actions">
         <button data-act="openManga" data-id="${m.id}">Continue</button>
-        <button class="secondary" data-act="structure" data-id="${m.id}">Structure</button>
-        <button class="secondary" data-act="favoriteManga" data-id="${m.id}">${m.favorite ? "★" : "☆"}</button>
+        <button class="secondary" data-act="structure" data-id="${m.id}" title="See volumes and chapters">Structure</button>
+        <button class="secondary" data-act="favoriteManga" data-id="${m.id}" title="Favorite" aria-label="Favorite">${m.favorite ? "★" : "☆"}</button>
         <button class="secondary" data-act="renameManga" data-id="${m.id}">Rename</button>
         <button class="secondary" data-act="deleteManga" data-id="${m.id}" style="color:var(--danger)">Delete</button>
       </div>
@@ -1268,7 +1310,7 @@ async function renderLibrary(){
         <span style="font-size:11px; color:var(--dim)">link a folder or upload</span>
       </button>
     </div>
-    <p class="hint">Tap a card to read full-screen. The 📑 Vol / Ch button in the reader jumps between volumes and chapters; ⚙ opens reader settings.</p>
+    <p class="hint">Tap a card to read full-screen. The 📑 Vol / Ch button in the reader jumps between volumes and chapters; ⚙ opens reader settings. New here? Tap <b>?</b> at the top for the guide.</p>
   `;
   document.querySelectorAll('img[data-cover]').forEach(async img => {
     try{
@@ -1407,12 +1449,13 @@ function counterTabHTML(manga, tab){
       ${cards}
       <button class="card add" data-act="addCounter" data-tab="${tab}">+ Add counter</button>
     </div>
+    <div style="margin:10px 0 0"><button class="btn" data-act="copyCounters">📋 Copy counters from another manga</button></div>
     <p class="hint">Tap a card's number to +1, or use the buttons. Keyboard: <kbd>key</kbd> +1, <kbd>Shift+key</kbd> cover, <kbd>Alt+key</kbd> note, <kbd>Alt+Shift+key</kbd> −1.</p>`;
 }
 function renderCounter(){
   const m = currentManga();
   if(!m){
-    document.getElementById('main').innerHTML = `<p class="hint">No manga selected.</p>`;
+    document.getElementById('main').innerHTML = `<p class="hint">No manga yet. Add one from the Library first, or tap <b>?</b> for the guide.</p>`;
     return;
   }
   statsMap = computeStats(m);
@@ -1576,13 +1619,115 @@ function showChapterTransition(){
   stage.querySelector('.chapter-transition')?.remove();
   const n=document.createElement('div');n.className='chapter-transition';n.innerHTML=`<b>${esc(m.title)}</b><div style="margin-top:4px">Vol ${m.volume} · Ch ${m.chapter}</div>`;stage.appendChild(n);setTimeout(()=>n.remove(),1450);
 }
+const STRUCT_PREFS_KEY='erlanyomi.structurePrefs';
+const STRUCT_DEFAULTS={view:'grid',size:'m',sort:'asc',filter:'all',thumbs:true,time:true,counts:true,pages:true};
+function loadStructPrefs(){
+  let p={};try{p=JSON.parse(localStorage.getItem(STRUCT_PREFS_KEY)||'{}')||{};}catch(_){}
+  const o={...STRUCT_DEFAULTS,...p};
+  if(!['grid','list'].includes(o.view))o.view='grid';
+  if(!['s','m','l'].includes(o.size))o.size='m';
+  if(!['asc','desc'].includes(o.sort))o.sort='asc';
+  if(!['all','unread','read'].includes(o.filter))o.filter='all';
+  ['thumbs','time','counts','pages'].forEach(k=>o[k]=!!o[k]);
+  return o;
+}
+function saveStructPrefs(p){try{localStorage.setItem(STRUCT_PREFS_KEY,JSON.stringify(p));}catch(_){}}
 function openStructure(id){
   const m=state.mangas.find(x=>x.id===id);if(!m)return;
-  const o=makeOverlay('structureModal','min(760px,96vw)'),box=o.querySelector('.modal');
-  box.innerHTML=`<div class="rs-head"><h3>${esc(m.title)} · Structure</h3><button class="btn" data-close-structure>✕</button></div><div class="rs-note">${m.volumes.length} volumes · ${m.volumes.reduce((n,v)=>n+v.chapters.length,0)} chapters</div>${m.volumes.map(v=>`<h3>Volume ${v.num}${volReadMs(m,v.num)>0?` <small class="dim">· ⏱ ${fmtDur(volReadMs(m,v.num))}</small>`:''}</h3><div class="structure-grid">${v.chapters.map(c=>`<div class="structure-thumb"><img loading="lazy" data-structure-mid="${m.id}" data-structure-vol="${v.num}" data-structure-ch="${c.num}" alt=""><div>Ch ${c.num}${c.name?' · '+esc(c.name):''}${chReadMs(m,v.num,c.num)>0?' · ⏱ '+fmtDur(chReadMs(m,v.num,c.num)):''}</div></div>`).join('')}</div>`).join('')||'<p class="dim">No chapter structure found.</p>'}<div class="actions"><a class="btn" target="_blank" rel="noopener" href="https://mangadex.org/titles?q=${encodeURIComponent(m.title)}">Search MangaDex ↗</a><button class="btn" data-close-structure>Close</button></div>`;
-  o.addEventListener('click',e=>{if(e.target.closest('[data-close-structure]'))o.remove();});
-  const io=new IntersectionObserver(entries=>entries.forEach(async en=>{if(!en.isIntersecting)return;io.unobserve(en.target);try{const mm=state.mangas.find(x=>x.id===en.target.dataset.structureMid);const vv=mm?.volumes.find(x=>x.num===Number(en.target.dataset.structureVol));const cc=vv?.chapters.find(x=>x.num===Number(en.target.dataset.structureCh));if(!mm||!cc||!cc.keys?.[0])return;const file=await getPageFile(mm,cc,1);en.target.src=URL.createObjectURL(file);}catch(e){}}),{root:box,rootMargin:'120px'});
-  box.querySelectorAll('[data-structure-mid]').forEach(img=>io.observe(img));
+  if(!m.readChapters)m.readChapters={};
+  const prefs=loadStructPrefs(), collapsed=new Set(), urls={};
+  const o=makeOverlay('structureModal','min(820px,96vw)'),box=o.querySelector('.modal');
+  const isRead=(v,c)=>!!m.readChapters[`${v}:${c}`];
+  const sizes={s:84,m:120,l:170};
+  const io=new IntersectionObserver(entries=>entries.forEach(async en=>{
+    if(!en.isIntersecting)return;io.unobserve(en.target);
+    try{
+      const v=Number(en.target.dataset.v),c=Number(en.target.dataset.c),k=`${v}:${c}`;
+      const cc=m.volumes.find(x=>x.num===v)?.chapters.find(x=>x.num===c);
+      if(!cc||!cc.keys?.[0])return;
+      if(!urls[k]){const file=await getPageFile(m,cc,1);urls[k]=URL.createObjectURL(file);}
+      en.target.src=urls[k];
+    }catch(e){}
+  }),{root:box,rootMargin:'160px'});
+  const chip=(grp,val,label)=>`<button class="st-chip${prefs[grp]===val?' on':''}" data-st-pref="${grp}" data-val="${val}">${label}</button>`;
+  const tog=(k,label)=>`<button class="st-chip${prefs[k]?' on':''}" data-st-toggle="${k}">${prefs[k]?'✓ ':''}${label}</button>`;
+  const draw=()=>{
+    const scroll=box.scrollTop;
+    const cmap={};for(const e of m.events){const k=`${e.v}:${e.ch||1}`;cmap[k]=(cmap[k]||0)+1;}
+    let totCh=0,totRead=0,totPages=0,totCounts=0;
+    m.volumes.forEach(v=>v.chapters.forEach(c=>{totCh++;totPages+=c.pageCount||0;totCounts+=cmap[`${v.num}:${c.num}`]||0;if(isRead(v.num,c.num))totRead++;}));
+    const pct=totCh?Math.round(totRead/totCh*100):0, total=mangaReadMs(m);
+    const dir=prefs.sort==='desc'?-1:1;
+    const vols=m.volumes.slice().sort((x,y)=>dir*(x.num-y.num));
+    const showThumb=prefs.thumbs;
+    const volHTML=vols.map(v=>{
+      const chs=v.chapters.slice().sort((x,y)=>dir*(x.num-y.num));
+      const vRead=v.chapters.filter(c=>isRead(v.num,c.num)).length;
+      const vPct=v.chapters.length?Math.round(vRead/v.chapters.length*100):0;
+      const vTime=volReadMs(m,v.num), vCounts=v.chapters.reduce((n,c)=>n+(cmap[`${v.num}:${c.num}`]||0),0);
+      const shown=chs.filter(c=>prefs.filter==='all'||(prefs.filter==='read'?isRead(v.num,c.num):!isRead(v.num,c.num)));
+      if(!shown.length&&prefs.filter!=='all')return '';
+      const open=!collapsed.has(v.num);
+      const meta=[`${vRead}/${v.chapters.length} read`,prefs.time&&vTime>0?`⏱ ${fmtDur(vTime)}`:'',prefs.counts&&vCounts>0?`🔢 ${vCounts}`:''].filter(Boolean).join(' · ');
+      const cards=open?shown.map(c=>{
+        const k=`${v.num}:${c.num}`, rd=isRead(v.num,c.num), cur=(m.volume===v.num&&m.chapter===c.num);
+        const t=chReadMs(m,v.num,c.num), cn=cmap[k]||0;
+        const meta2=[prefs.pages&&c.pageCount?`${c.pageCount}p`:'',prefs.time&&t>0?`⏱ ${fmtDur(t)}`:'',prefs.counts&&cn>0?`🔢 ${cn}`:''].filter(Boolean).join(' · ');
+        const img=showThumb?`<div class="st-img"><img ${urls[k]?`src="${urls[k]}"`:''} data-v="${v.num}" data-c="${c.num}" alt=""><span class="st-badge">${cur?'<i>▶ NOW</i>':''}${rd?'<i>✓</i>':''}</span></div>`:'';
+        return `<div class="st-card${cur?' cur':''}${rd?' read':''}" data-st-open data-v="${v.num}" data-c="${c.num}">${img}<div class="st-info"><b>Ch ${c.num}</b>${c.name?' · '+esc(c.name):''}${!showThumb&&cur?' <i>▶ now</i>':''}${meta2?`<div class="st-meta">${meta2}</div>`:''}</div><button class="st-readbtn" data-st-read data-v="${v.num}" data-c="${c.num}">${rd?'✓ Read':'Mark read'}</button></div>`;
+      }).join(''):'';
+      return `<div class="st-vol"><button class="st-vtoggle" data-st-collapse="${v.num}">${open?'▾':'▸'} Volume ${v.num}</button><span class="st-vmeta">${meta}</span><button class="btn st-mini" data-st-volread="${v.num}">${vRead===v.chapters.length&&v.chapters.length?'Mark unread':'Mark all read'}</button></div><div class="st-bar"><div style="width:${vPct}%"></div></div>${open?`<div class="${prefs.view==='list'?'st-list':'st-grid'}" style="--st-min:${sizes[prefs.size]}px">${cards}</div>`:''}`;
+    }).join('');
+    const cur=curChapter(m);
+    box.innerHTML=`<div class="rs-head"><h3>${esc(m.title)} · Structure</h3><button class="btn" data-close-structure>✕</button></div>
+      <div class="st-tiles">
+        <div class="st-tile"><b>${m.volumes.length}</b><span>volumes</span></div>
+        <div class="st-tile"><b>${totCh}</b><span>chapters</span></div>
+        <div class="st-tile"><b>${totPages}</b><span>pages</span></div>
+        <div class="st-tile"><b>${pct}%</b><span>${totRead}/${totCh} read</span></div>
+        <div class="st-tile"><b>${total>0?fmtDur(total):'–'}</b><span>reading time</span></div>
+        <div class="st-tile"><b>${totCounts}</b><span>counts</span></div>
+      </div>
+      <div class="st-bar"><div style="width:${pct}%"></div></div>
+      ${m.volumes.length?`<div class="actions" style="justify-content:flex-start;margin:0"><button class="btn primary" data-st-continue>▶ Continue · Vol ${m.volume} · Ch ${m.chapter}${m.page?' · p. '+m.page:''}</button><button class="btn" data-st-all="collapse">Collapse all</button><button class="btn" data-st-all="expand">Expand all</button></div>`:''}
+      <div class="st-controls">
+        <div class="st-group">View ${chip('view','grid','Grid')}${chip('view','list','List')}</div>
+        <div class="st-group">Size ${chip('size','s','S')}${chip('size','m','M')}${chip('size','l','L')}</div>
+        <div class="st-group">Order ${chip('sort','asc','Oldest first')}${chip('sort','desc','Newest first')}</div>
+        <div class="st-group">Show ${chip('filter','all','All')}${chip('filter','unread','Unread')}${chip('filter','read','Read')}</div>
+        <div class="st-group">Details ${tog('thumbs','Covers')}${tog('pages','Pages')}${tog('time','Time')}${tog('counts','Counts')}</div>
+      </div>
+      ${volHTML||(m.volumes.length?'<p class="dim">Nothing matches this filter.</p>':'<p class="dim">No chapter structure found. Add files to this manga first.</p>')}
+      <div class="actions"><a class="btn" target="_blank" rel="noopener" href="https://mangadex.org/titles?q=${encodeURIComponent(m.title)}">Search MangaDex ↗</a><button class="btn" data-close-structure>Close</button></div>`;
+    box.querySelectorAll('img[data-v]').forEach(img=>{if(!img.getAttribute('src'))io.observe(img);});
+    box.scrollTop=scroll;
+  };
+  const refreshLib=()=>{ if(state.view==='library') renderLibrary(); };
+  box.addEventListener('click',e=>{
+    const t=e.target;let b;
+    if(t.closest('[data-close-structure]')){o.remove();return;}
+    if((b=t.closest('[data-st-pref]'))){prefs[b.dataset.stPref]=b.dataset.val;saveStructPrefs(prefs);draw();return;}
+    if((b=t.closest('[data-st-toggle]'))){const k=b.dataset.stToggle;prefs[k]=!prefs[k];saveStructPrefs(prefs);draw();return;}
+    if((b=t.closest('[data-st-collapse]'))){const n=Number(b.dataset.stCollapse);collapsed.has(n)?collapsed.delete(n):collapsed.add(n);draw();return;}
+    if((b=t.closest('[data-st-all]'))){if(b.dataset.stAll==='collapse')m.volumes.forEach(v=>collapsed.add(v.num));else collapsed.clear();draw();return;}
+    if((b=t.closest('[data-st-volread]'))){
+      const v=m.volumes.find(x=>x.num===Number(b.dataset.stVolread));if(!v)return;
+      const all=v.chapters.every(c=>isRead(v.num,c.num));
+      v.chapters.forEach(c=>{m.readChapters[`${v.num}:${c.num}`]=!all;});
+      save();draw();refreshLib();return;
+    }
+    if((b=t.closest('[data-st-read]'))){
+      const k=`${Number(b.dataset.v)}:${Number(b.dataset.c)}`;
+      m.readChapters[k]=!m.readChapters[k];save();draw();refreshLib();return;
+    }
+    if(t.closest('[data-st-continue]')){o.remove();openManga(m.id);return;}
+    if((b=t.closest('[data-st-open]'))){
+      const v=Number(b.dataset.v),c=Number(b.dataset.c);
+      if(!(m.volume===v&&m.chapter===c)){m.volume=v;m.chapter=c;m.page=1;}
+      save();o.remove();openManga(m.id);return;
+    }
+  });
+  draw();
 }
 function jumpToPagePrompt(){
   const m=currentManga(),ch=m&&curChapter(m);if(!m||!ch)return;
@@ -1593,7 +1738,7 @@ function jumpToPagePrompt(){
 
 function renderStats(){
   const m = currentManga();
-  if(!m){ document.getElementById('main').innerHTML = `<p class="hint">No manga selected.</p>`; return; }
+  if(!m){ document.getElementById('main').innerHTML = `<p class="hint">No manga yet. Add one from the Library first, or tap <b>?</b> for the guide.</p>`; return; }
   statsMap = computeStats(m);
   lastSeenMap = computeLastSeen(m);
   const volumes = [...new Set(m.events.map(e => e.v))].sort((a,b) => a - b);
@@ -1722,6 +1867,7 @@ function renderReader(){
           <button class="fs-btn" id="fsFullscreen" title="Fullscreen">⛶</button>
           <button class="fs-btn" id="fsFit" title="Cycle fit mode (F)">Fit</button>
           <button class="fs-btn" id="fsSettings" title="Reader settings (S)">⚙</button>
+          <button class="fs-btn" id="fsHelp" title="Help &amp; guide" aria-label="Help and guide">?</button>
           <button class="fs-btn" id="fsDrawerBtn" title="Counter">☰</button>
         </div>
       </div>
@@ -1926,8 +2072,8 @@ async function getPageFile(m, ch, page){
 }
 function errMsg(err){
   const c = err && err.message;
-  if(c === 'no-perm')   return 'Permission to read the folder was denied.';
-  if(c === 'no-handle') return 'Folder not connected this session.';
+  if(c === 'no-perm')   return 'The browser needs your OK again to read this folder.';
+  if(c === 'no-handle') return 'This folder is not connected in this browser yet.';
   if(c === 'no-file')   return 'Page file missing — folder may have changed.';
   if(c === 'no-blob')   return 'Page image missing from storage.';
   if(c === 'no-source') return 'No images linked for this manga.';
@@ -2000,13 +2146,17 @@ function clearPaged(){
   document.querySelectorAll('#fsStage .fs-spread').forEach(disposeSpread);
   currentDisplayImg = null;
 }
-function emptyStateHTML(m, msg){
+function emptyStateHTML(m, msg, code){
+  const needsAccess = m.sourceType === 'folder' && (code === 'no-perm' || code === 'no-handle');
+  const main = needsAccess
+    ? `<button class="btn primary" data-act="grantFolder" data-id="${m.id}">🔓 Tap to allow folder access</button>
+       <div style="margin-top:8px"><button class="btn" data-act="openFolder" data-id="${m.id}">🔗 Choose folder again</button></div>
+       <div style="margin-top:10px;font-size:11px;opacity:.75">Allowing access keeps your saved progress, counters and chapter edits. Only choose the folder again if it was moved or renamed.</div>`
+    : `<button class="btn primary" data-act="openFolder" data-id="${m.id}">🔗 Link folder</button>`;
   return `
     <div>${msg}</div>
     <div style="margin-top:8px">Counters are safe — <b>${m.events.length}</b> counts preserved.</div>
-    <div style="margin-top:16px">
-      <button class="btn primary" data-act="openFolder" data-id="${m.id}">🔗 Link folder</button>
-    </div>`;
+    <div style="margin-top:16px">${main}</div>`;
 }
 async function loadCurrentPage(){
   resetZoom();
@@ -2087,7 +2237,7 @@ async function loadCurrentPage(){
     clearPaged();
     if(empty){
       empty.style.display = '';
-      empty.innerHTML = emptyStateHTML(m, errMsg(err));
+      empty.innerHTML = emptyStateHTML(m, errMsg(err), err && err.message);
     }
     scheduleAdvance();
   }
@@ -3342,6 +3492,7 @@ async function openManga(id){
       if(handle){
         let perm = 'granted';
         try{ perm = await handle.queryPermission({ mode: 'read' }); }catch(e){}
+        if(perm !== 'granted'){ try{ perm = await handle.requestPermission({ mode: 'read' }); }catch(e){} }
         if(perm === 'granted') folderHandleCache[m.id] = handle;
       }
     }catch(e){}
@@ -3349,6 +3500,22 @@ async function openManga(id){
   stopAuto(); teardownStrip(); preloadDone.clear();
   readerUI = { chromeVisible: true, drawerOpen: false, counterTab: state.activeCounterTab || 'characters' };
   setView('reader');
+  maybeShowReaderHint();
+}
+async function grantFolderAccess(id){
+  const m = state.mangas.find(x => x.id === id);
+  if(!m) return;
+  let handle = folderHandleCache[id];
+  if(!handle){ try{ handle = await idbGet('handle:' + id); }catch(_){} }
+  if(!handle){ relinkFolder(id); return; }
+  let perm = 'denied';
+  try{ perm = await handle.requestPermission({ mode: 'read' }); }catch(e){}
+  if(perm !== 'granted'){ showToastText('Access not granted. Tap again, or choose the folder again.'); return; }
+  folderHandleCache[id] = handle;
+  pageCache.clear(); dirHandleCache.clear();
+  showToastText('🔓 Folder access allowed');
+  if(state.view === 'reader') loadCurrentPage();
+  else if(state.view === 'library') renderLibrary();
 }
 function relinkFolder(id){
   if(!window.showDirectoryPicker){
@@ -3700,7 +3867,9 @@ function handleMainAction(e){
     if(act === 'jumpBm'){ const mm = currentManga(); const b = mm.bookmarks[parseInt(btn.dataset.idx,10)]; if(b){ mm.volume=b.v; mm.chapter=b.ch; mm.page=b.p; save(); renderMain(); } return; }
     if(act === 'delBm'){ const mm = currentManga(); mm.bookmarks.splice(parseInt(btn.dataset.idx,10),1); save(); renderStats(); return; }
     if(act === 'openFolder'){ relinkFolder(btn.dataset.id); return; }
+    if(act === 'grantFolder'){ grantFolderAccess(btn.dataset.id); return; }
     if(act === 'addCounter'){ addCounterToTab(btn.dataset.tab); return; }
+    if(act === 'copyCounters'){ openCopyCounters(); return; }
     if(act === 'pin'){ togglePinCounter(btn.dataset.id); return; }
     if(act === 'plus'){ quickCount(btn.dataset.id, e.shiftKey); return; }
     if(act === 'minus'){ decrementCounter(btn.dataset.id); return; }
@@ -3740,6 +3909,117 @@ document.getElementById('noteInput').addEventListener('keydown', e => {
   if(e.key === 'Escape'){ e.preventDefault(); closeNoteModal(); }
 });
 
+/* ===== Copy counters from another manga ===== */
+function openCopyCounters(){
+  const target=currentManga();if(!target)return;
+  const sources=state.mangas.filter(x=>x.id!==target.id&&Array.isArray(x.counters)&&x.counters.length);
+  const o=makeOverlay('copyCountersModal','min(460px,94vw)'),box=o.querySelector('.modal');
+  if(!sources.length){
+    box.innerHTML=`<h3>Copy counters</h3><div class="help-body"><p>No other manga has counters yet. Create counters in one manga first, then you can copy them into others from here.</p></div><div class="actions"><button class="btn primary" data-cc-close>Close</button></div>`;
+    box.addEventListener('click',e=>{if(e.target.closest('[data-cc-close]'))o.remove();});return;
+  }
+  let src=sources[0];
+  const tabName={characters:'Characters',moments:'Moments',events:'Events'};
+  const draw=()=>{
+    box.innerHTML=`<h3>Copy counters into “${esc(target.title)}”</h3>
+      <div><label>Copy from</label><select id="ccSrc" style="width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:10px 12px;font:inherit;font-size:14px">${sources.map((x,i)=>`<option value="${i}"${x===src?' selected':''}>${esc(x.title)} (${x.counters.length})</option>`).join('')}</select></div>
+      <div class="help-body">${src.counters.map((c,i)=>`<label style="display:flex;gap:8px;align-items:center;color:var(--txt);font-weight:500"><input type="checkbox" data-cc-idx="${i}" checked> ${esc(c.name)} <span class="dim" style="font-size:11px">· ${esc(tabName[c.tab]||c.tab)} · key ${esc(c.key)}</span></label>`).join('')}</div>
+      <div class="hint" style="margin:0;font-size:11px">Only counter names, tabs and keys are copied. Counts and notes stay with the original manga. Counters that already exist here are skipped.</div>
+      <div class="actions"><button class="btn" data-cc-close>Cancel</button><button class="btn primary" data-cc-go>Copy</button></div>`;
+  };
+  box.addEventListener('change',e=>{if(e.target.id==='ccSrc'){src=sources[Number(e.target.value)]||sources[0];draw();}});
+  box.addEventListener('click',e=>{
+    if(e.target.closest('[data-cc-close]')){o.remove();return;}
+    if(!e.target.closest('[data-cc-go]'))return;
+    const picked=[...box.querySelectorAll('[data-cc-idx]')].filter(i=>i.checked).map(i=>src.counters[Number(i.dataset.ccIdx)]);
+    let added=0,skipped=0;
+    for(const c of picked){
+      if(target.counters.some(x=>x.tab===c.tab&&String(x.name).toLowerCase()===String(c.name).toLowerCase())){skipped++;continue;}
+      let key=c.key;
+      if(!key||(key>='1'&&key<='5')||target.counters.some(x=>x.tab===c.tab&&x.key===key))key=suggestKey(c.tab,target.counters);
+      if(!key){skipped++;continue;}
+      target.counters.push({id:'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)+added,name:c.name,tab:c.tab,key});
+      added++;
+    }
+    save();o.remove();renderCounter();
+    showToastText(added?`Copied ${added} counter${added===1?'':'s'}${skipped?` (${skipped} skipped)`:''}`:'Nothing new to copy');
+  });
+  draw();
+}
+
+/* ===== Tutorial + Help guide ===== */
+const TOUR_KEY = 'erlanyomi.tourSeen';
+const READER_HINT_KEY = 'erlanyomi.readerHintSeen';
+const TOUR_STEPS = [
+  { icon:'📖', title:'Welcome to ErlanYomi', body:`<p>A manga reader with a counter and stats built in. Everything stays on your device: no account, no server.</p><p>This quick tour takes under a minute. You can replay it any time from the <b>?</b> button.</p>` },
+  { icon:'📚', title:'1. Add your manga', body:`<p>In the <b>Library</b>, tap <b>Add manga</b> and pick one:</p><ul><li><b>Link a folder</b>: nothing is copied (Chrome / Edge on desktop).</li><li><b>Upload CBZ or images</b>: works on phones too, and is stored in your browser.</li></ul><p>You can fix volume and chapter numbers before saving.</p>` },
+  { icon:'👆', title:'2. Read', body:`<p>Tap a card (or <b>Continue</b>) to open the reader.</p><ul><li>Tap the <b>left or right side</b> to turn pages. Tap the <b>middle</b> to show or hide the menus.</li><li><b>Pinch</b> to zoom, drag to pan. Double-tap the middle to zoom in.</li><li>Swiping is turned off while zoomed in, so you won't flip by accident.</li></ul>` },
+  { icon:'🔢', title:'3. Count things as you read', body:`<p>Open <b>☰</b> in the reader to see your counters. Pin a counter and it shows as a quick chip at the bottom of the reader: tap it to add +1 for the current page.</p><p>Every count remembers its volume, chapter and page.</p>` },
+  { icon:'📊', title:'4. Stats and reading time', body:`<p>The <b>Stats</b> tab shows counts per volume, notes, bookmarks, reading sessions and <b>reading time</b> per chapter, volume and manga.</p><p>Use <b>Structure</b> on a card to see volumes and chapters with their read status and time.</p>` },
+  { icon:'💾', title:'5. Back up your data', body:`<p>Your library lives in this browser's storage. Clearing site data erases it, so use the export option on the Stats page to save a backup now and then.</p><p>Need details later? Tap <b>?</b> for the full guide.</p>` }
+];
+function closeTutorial(){ document.getElementById('tourModal')?.remove(); try{ localStorage.setItem(TOUR_KEY,'1'); }catch(_){} }
+function openTutorial(step=0){
+  const o = makeOverlay('tourModal','min(440px,94vw)');
+  const box = o.querySelector('.modal');
+  const draw = () => {
+    const st = TOUR_STEPS[step], last = step === TOUR_STEPS.length-1;
+    box.innerHTML = `<div class="help-emoji">${st.icon}</div><h3 style="text-align:center">${st.title}</h3>
+      <div class="help-body">${st.body}</div>
+      <div class="help-steps">${TOUR_STEPS.map((_,i)=>`<i class="${i===step?'on':''}"></i>`).join('')}</div>
+      <div class="actions">${step===0?`<button class="btn" data-tour="skip">Skip</button>`:`<button class="btn" data-tour="back">Back</button>`}<button class="btn primary" data-tour="${last?'done':'next'}">${last?'Got it':'Next'}</button></div>`;
+  };
+  box.addEventListener('click', e => {
+    const b = e.target.closest('[data-tour]'); if(!b) return;
+    const a = b.dataset.tour;
+    if(a==='next'){ step++; draw(); }
+    else if(a==='back'){ step--; draw(); }
+    else closeTutorial();
+  });
+  o.addEventListener('click', e => { if(e.target===o) closeTutorial(); });
+  draw();
+}
+const HELP_SECTIONS = [
+  { id:'start', title:'🚀 Getting started', body:`<ul><li><b>Add manga</b> from the Library: link a folder (desktop Chrome / Edge) or upload CBZ / image files (works everywhere).</li><li>Name chapters like “Vol 1 Ch 3”, or keep one folder per chapter, so volumes and chapters are detected. You can edit them in the confirm step.</li><li>There is no upload size limit, but big imports take a while. Keep the tab open until saving finishes, and import a few volumes at a time if your phone runs low on memory.</li><li>Tap a card or <b>Continue</b> to read. Double-click a card on desktop to jump straight back in.</li></ul>` },
+  { id:'library', title:'📚 Library and cards', body:`<ul><li><b>Continue</b> opens the reader where you stopped.</li><li><b>Structure</b> is a dashboard for one manga: totals, progress, and every volume and chapter with covers, read status, pages, reading time and counts. Tap a chapter to read from it, use <b>Mark read</b> per chapter or per volume, and use the controls (Grid / List, cover size, order, All / Unread / Read, and which details to show) to make it your own. Your choices are remembered.</li><li><b>☆ / ★</b> marks a favorite. Favorites appear in a bar at the top.</li><li><b>Hide completed</b> hides manga you have finished.</li><li>The ring shows your progress. ⏱ is your total reading time for that manga.</li><li>Folder-linked manga: browsers forget folder access when you close the site. When you open the manga, allow access in the prompt. If the page says it needs access, tap <b>Tap to allow folder access</b>. Your progress, counters and chapter edits are kept. Only choose the folder again if it was moved or renamed. In Chrome, picking “Allow on every visit” (when offered) makes it stick.</li><li>The “Download manga from MangaDex” link goes to a separate third-party downloader, not MangaDex itself.</li></ul>` },
+  { id:'reader', title:'👆 Reading and gestures', body:`<ul><li><b>Turn pages:</b> tap or click the left / right side. In right-to-left manga (the default), tapping the <b>left</b> goes forward. You can switch direction in Stats.</li><li><b>Menus:</b> tap the middle to show or hide them.</li><li><b>Zoom:</b> pinch, or double-tap the middle. Double-tap again (or use the fit button) to zoom out. While zoomed, side taps and swipes do not turn pages.</li><li><b>Fit:</b> the Fit button cycles Page, Width, Height and Original, saved per manga.</li><li><b>Jump:</b> the 📑 button opens a search for volumes and chapters. Long-press the page number to jump to a page.</li><li><b>🔖</b> bookmarks the page. <b>▶</b> is auto-play. <b>⛶</b> is fullscreen. <b>⚙</b> has reader settings (layout, double-page with cover offset, scroll mode, preload, greyscale, dimming).</li><li>If you reload, you will be asked whether to resume where you were.</li></ul>` },
+  { id:'counter', title:'🔢 Counters', body:`<ul><li>Counters track anything you like while you read, for example how often a character shows up.</li><li>In the reader, open <b>☰</b> to see counters. <b>Pin</b> a counter to get a quick chip in the reader.</li><li>Each count saves the volume, chapter and page. <b>Undo</b> (top bar) removes the last count.</li><li>Counters belong to one manga. In the Counter tab, <b>Copy counters from another manga</b> reuses names, tabs and keys from a series you already set up (counts are not copied).</li><li>On desktop, each counter has a key. Press it to add +1. <kbd>Shift</kbd>+key counts it as a cover appearance, <kbd>Alt</kbd>+key adds a note, <kbd>Alt</kbd>+<kbd>Shift</kbd>+key subtracts 1.</li></ul>` },
+  { id:'stats', title:'📊 Stats and reading time', body:`<ul><li><b>Reading time</b> is added up per chapter, then per volume, then per manga. For example five chapters of 5 minutes make a 25 minute volume.</li><li>Time only counts while you are in the reader, and a single page counts for at most 1 minute so leaving a page open does not inflate it.</li><li>Stats also shows volume summaries, totals, notes, bookmarks and your last 30 reading sessions.</li><li>Chapters count as read when you reach their last page. You can also mark chapters read from Structure.</li></ul>` },
+  { id:'keys', title:'⌨️ Keyboard shortcuts (reader)', body:`<ul><li><kbd>←</kbd> / <kbd>→</kbd> turn pages (direction follows reading order), <kbd>Space</kbd> next, <kbd>Shift</kbd>+<kbd>Space</kbd> previous</li><li><kbd>Home</kbd> / <kbd>End</kbd> first / last page of the chapter</li><li><kbd>F</kbd> fit mode, <kbd>J</kbd> jump menu, <kbd>S</kbd> settings, <kbd>B</kbd> bookmark, <kbd>D</kbd> counter drawer</li><li><kbd>+</kbd> / <kbd>−</kbd> / <kbd>0</kbd> zoom in / out / reset</li><li><kbd>Esc</kbd> back to the library, <kbd>Backspace</kbd> or <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo the last count</li></ul>` },
+  { id:'data', title:'💾 Your data and backups', body:`<ul><li>Everything is stored in this browser (localStorage and IndexedDB). Nothing is uploaded anywhere.</li><li>Clearing site data, or using a different browser, means starting empty. <b>Export</b> a save from the Stats page regularly. CSV export is there too.</li><li>Uploaded files use browser storage, so a very large library can hit your browser's storage limit. Linked folders do not.</li><li>Themes are in the top bar (the colored squares).</li></ul>` }
+];
+function openHelp(openId){
+  const o = makeOverlay('helpModal','min(520px,94vw)');
+  const box = o.querySelector('.modal');
+  box.innerHTML = `<h3>ErlanYomi guide</h3>
+    <div class="actions" style="justify-content:flex-start;margin:0"><button class="btn" data-help-tour>▶ Replay tutorial</button></div>
+    <div>${HELP_SECTIONS.map(sec => `<details class="help-sec" data-sec="${sec.id}"${sec.id===openId?' open':''}><summary>${sec.title}</summary><div class="help-body">${sec.body}</div></details>`).join('')}</div>
+    <div class="actions"><button class="btn primary" data-help-close>Close</button></div>`;
+  box.addEventListener('click', e => {
+    if(e.target.closest('[data-help-close]')) o.remove();
+    else if(e.target.closest('[data-help-tour]')){ o.remove(); openTutorial(0); }
+  });
+}
+function maybeShowReaderHint(){
+  try{ if(localStorage.getItem(READER_HINT_KEY)) return; localStorage.setItem(READER_HINT_KEY,'1'); }catch(_){ return; }
+  setTimeout(() => {
+    if(state.view !== 'reader') return;
+    showToastText('Tap left / right to turn pages · tap the middle for menus · pinch to zoom · <b>?</b> for help');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => document.getElementById('toast')?.classList.remove('show'), 6000);
+  }, 700);
+}
+document.addEventListener('click', e => {
+  if(e.target.closest('#helpBtn, #fsHelp')){ e.preventDefault(); openHelp(); return; }
+  const l = e.target.closest('[data-open-help]');
+  if(l){ e.preventDefault(); openHelp(l.dataset.openHelp); }
+});
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Escape') return;
+  const o = document.getElementById('helpModal') || document.getElementById('tourModal');
+  if(o){ e.preventDefault(); e.stopImmediatePropagation(); if(o.id==='tourModal') closeTutorial(); else o.remove(); }
+}, true);
+
 window.addEventListener('pagehide', ()=>{ if(activeReadSession){const mm=state.mangas.find(x=>x.id===activeReadSession.mid);if(mm)mm.activeReadingSession=activeReadSession;} flushSave(); });
 applyTheme(currentTheme);
 setSaveIndicator(false);
@@ -3749,6 +4029,7 @@ renderTopTabs();
 renderSubbar();
 renderMain();
 setInterval(checkBackupReminder, 60000);
+try{ if(!localStorage.getItem(TOUR_KEY) && !state.mangas.some(m => m.volumes && m.volumes.length) && state.view !== 'reader') setTimeout(() => openTutorial(0), 400); }catch(_){}
 window.addEventListener('resize', () => {
   if(state.view === 'reader') updateReaderChrome();
 });
