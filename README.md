@@ -1,11 +1,6 @@
 # ErlanYomi
 
 A single-file manga reader and reading tracker that runs entirely in your browser. Add manga from a linked folder or by uploading CBZ files, read them in a full-screen reader, and keep counters, bookmarks, and reading stats along the way.
-
-No server, no account, no install. Open `manga-counter-working-v2.html` and go.
-
-> Formerly "Manga Counter".
-
 ## Features
 
 ### Library
