@@ -534,7 +534,7 @@
             overflow-anchor:none; z-index:2; -webkit-overflow-scrolling:touch;
             touch-action:pan-y pinch-zoom; overscroll-behavior:contain;
             scrollbar-width:thin; background:#000}
-  .strip-page{position:relative; width:100%; max-width:960px; margin:0 auto;
+  .strip-page{position:relative; width:100%; max-width:var(--strip-max,960px); margin:0 auto;
               min-height:60vh; display:flex; align-items:center;
               justify-content:center; color:#666; font-size:12px}
   .strip-page.loaded{min-height:0; display:block}
@@ -665,6 +665,8 @@
   .st-list .st-img{width:38px;flex:none}
   .st-list .st-readbtn{margin:0;flex:none;padding:5px 8px}
   .st-list .st-card.read .st-info{opacity:.65}
+
+  @media (hover:none) and (pointer:coarse){ .fs-zoombtn{display:none !important} }
 </style>
 </head>
 <body>
@@ -799,13 +801,13 @@ const KEY_POOL = 'qwertyuiopasdfghjklzxcvbnm';
 /* ===== Reader settings (persisted) ===== */
 const RS_KEY = 'mangaCounter.readerSettings.v1';
 const RS_DEFAULTS = {
-  strip:false, stripMargin:0,
+  strip:false, stripMargin:0, stripWidth:960,
   layout:'single', offset:false, slide:false,
   scrollMode:'continuous', scrollSpeed:80, advanceSecs:8,
   progressPos:'bottom', preload:'some', hideTap:'single',
   grey:false, dim:0
 };
-const RS_LIMITS = { stripMargin:[0,400], scrollSpeed:[10,600], advanceSecs:[1,120], dim:[0,80] };
+const RS_LIMITS = { stripMargin:[0,400], stripWidth:[300,2400], scrollSpeed:[10,600], advanceSecs:[1,120], dim:[0,80] };
 function sanitizeRS(s){
   const o = { ...RS_DEFAULTS, ...(s || {}) };
   for(const k in RS_LIMITS){
@@ -1625,10 +1627,46 @@ function cycleFitMode(){
   m.fitMode=modes[(modes.indexOf(m.fitMode||'page')+1)%modes.length];
   save(); applyReaderSettings(); showToastText('Fit: '+m.fitMode);
 }
+const ZOOM_MIN=0.5, ZOOM_MAX=5;
 function applyZoom(){
   const spread=currentDisplayImg, ind=document.getElementById('zoomIndicator');
+  const stg=document.getElementById('fsStage');
+  if(zoomState.scale<=1){ zoomState.x=0; zoomState.y=0; }
+  else if(spread && stg && spread.offsetWidth>0 && spread.offsetHeight>0){
+    const r=stg.getBoundingClientRect();
+    const mx=Math.max(0,(spread.offsetWidth*zoomState.scale-r.width)/2), my=Math.max(0,(spread.offsetHeight*zoomState.scale-r.height)/2);
+    zoomState.x=Math.max(-mx,Math.min(mx,zoomState.x)); zoomState.y=Math.max(-my,Math.min(my,zoomState.y));
+  }
   if(spread){spread.style.transform=`translate(${zoomState.x}px,${zoomState.y}px) scale(${zoomState.scale})`;spread.style.transformOrigin='center center';spread.style.zIndex=zoomState.scale>1?'8':'1';}
-  if(ind){ind.textContent=Math.round(zoomState.scale*100)+'%';ind.classList.toggle('show',zoomState.scale>1);}
+  if(ind){ind.textContent=Math.round(zoomState.scale*100)+'%';ind.classList.toggle('show',Math.abs(zoomState.scale-1)>0.01);}
+}
+/* Zoom keeping the point under (cx,cy) fixed. Used by Ctrl+wheel, trackpad pinch, +/- keys and the zoom buttons. */
+function zoomAt(ns,cx,cy){
+  const stg=document.getElementById('fsStage'); if(!stg) return;
+  ns=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,ns));
+  const os=zoomState.scale; if(ns===os) return;
+  const r=stg.getBoundingClientRect();
+  if(cx==null){cx=r.left+r.width/2;cy=r.top+r.height/2;}
+  const px=cx-(r.left+r.width/2), py=cy-(r.top+r.height/2), k=ns/os;
+  zoomState.x=px-(px-zoomState.x)*k; zoomState.y=py-(py-zoomState.y)*k;
+  zoomState.scale=Math.abs(ns-1)<0.03?1:ns;
+  applyZoom();
+}
+/* Scroll (strip) mode has no image zoom; zooming changes the page width instead. */
+function stripZoom(factor){
+  const strip=document.getElementById('fsStrip'); if(!strip) return;
+  const curW=strip.querySelector('.strip-page')?.offsetWidth||rs.stripWidth;
+  const nw=Math.round(Math.max(300,Math.min(2400,curW*factor)));
+  if(nw===Math.round(curW)) return;
+  const ratio=nw/curW;
+  rs.stripWidth=nw; saveRS(); applyReaderSettings();
+  strip.scrollTop=strip.scrollTop*ratio;
+  showToastText('Page width '+Math.round(strip.querySelector('.strip-page')?.offsetWidth||nw)+'px');
+}
+function zoomBy(factor,cx,cy){ if(isStrip()) stripZoom(factor); else zoomAt(zoomState.scale*factor,cx,cy); }
+function resetAllZoom(){
+  if(isStrip()){ rs.stripWidth=RS_DEFAULTS.stripWidth; saveRS(); applyReaderSettings(); showToastText('Page width reset'); }
+  else resetZoom();
 }
 function resetZoom(){zoomState.scale=1;zoomState.x=0;zoomState.y=0;applyZoom();}
 function setZoom(scale){zoomState.scale=Math.max(1,Math.min(4,scale));if(zoomState.scale===1){zoomState.x=0;zoomState.y=0;}applyZoom();}
@@ -1885,6 +1923,7 @@ function renderReader(){
           <button class="fs-btn" id="fsFullscreen" title="Fullscreen">⛶</button>
           <button class="fs-btn" id="fsFit" title="Cycle fit mode (F)">Fit</button>
           <button class="fs-btn" id="fsSettings" title="Reader settings (S)">⚙</button>
+          <button class="fs-btn fs-zoombtn" id="fsZoomOut" title="Zoom out (−)" aria-label="Zoom out">−</button><button class="fs-btn fs-zoombtn" id="fsZoomReset" title="Reset zoom (0)" aria-label="Reset zoom">⤢</button><button class="fs-btn fs-zoombtn" id="fsZoomIn" title="Zoom in (+)" aria-label="Zoom in">+</button>
           <button class="fs-btn" id="fsHelp" title="Help &amp; guide" aria-label="Help and guide">?</button>
           <button class="fs-btn" id="fsDrawerBtn" title="Counter">☰</button>
         </div>
@@ -2044,6 +2083,7 @@ function applyReaderSettings(){
   fs.classList.toggle('is-strip', rs.strip);
   fs.classList.toggle('prog-rtl', !rs.strip && !!m && m.readingDirection !== 'ltr');
   const strip = document.getElementById('fsStrip');
+  fs.style.setProperty('--strip-max', rs.stripWidth + 'px');
   if(strip){ strip.style.paddingLeft = strip.style.paddingRight = rs.stripMargin + 'px'; }
   updatePlayBtn();
 }
@@ -2439,7 +2479,10 @@ function renderStrip(m, ch){
   const endTouch = () => { auto.touching = false; auto.holdUntil = performance.now() + 600; };
   strip.addEventListener('touchend', endTouch, { passive: true });
   strip.addEventListener('touchcancel', endTouch, { passive: true });
-  strip.addEventListener('wheel', () => { auto.holdUntil = performance.now() + 800; }, { passive: true });
+  strip.addEventListener('wheel', e => {
+    auto.holdUntil = performance.now() + 800;
+    if(e.ctrlKey || e.metaKey){ e.preventDefault(); stripZoom(Math.exp(-e.deltaY * (e.deltaMode === 1 ? 16 : 1) * 0.0022)); }
+  }, { passive: false });
   strip.addEventListener('mousedown', () => { auto.touching = true; });
 
   if(rs.preload === 'all') stripPreloadAll(st, m.page);
@@ -2910,7 +2953,16 @@ function wireReaderEvents(){
   const endPointer=e=>{pts.delete(e.pointerId);if(pts.size<2)zoomState.startDist=0;};
   stage.addEventListener('pointerup',endPointer);stage.addEventListener('pointercancel',endPointer);
   stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')endPointer(e);});
-  stage.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();setZoom(zoomState.scale+(e.deltaY<0?.15:-.15));},{passive:false});
+  stage.addEventListener('wheel',e=>{
+    if(isStrip()) return;
+    const unit=e.deltaMode===1?16:1;
+    if(e.ctrlKey||e.metaKey){ e.preventDefault(); zoomAt(zoomState.scale*Math.exp(-e.deltaY*unit*0.0022),e.clientX,e.clientY); return; }
+    if(zoomState.scale>1){
+      e.preventDefault();
+      if(e.shiftKey) zoomState.x-=(e.deltaY||e.deltaX)*unit; else { zoomState.x-=e.deltaX*unit; zoomState.y-=e.deltaY*unit; }
+      applyZoom();
+    }
+  },{passive:false});
   stage.addEventListener('touchstart', e => {
     if(e.touches.length !== 1) return;
     touchStartX = e.touches[0].clientX;
@@ -3779,9 +3831,9 @@ document.addEventListener('keydown', e => {
     if(e.key.toLowerCase()==='j'){e.preventDefault();openJumpMenu();return;}
     if(e.key.toLowerCase()==='b'){e.preventDefault();document.getElementById('fsBookmark')?.click();return;}
     if(e.key.toLowerCase()==='d'){e.preventDefault();readerUI.drawerOpen=!readerUI.drawerOpen;updateReaderChrome();return;}
-    if(e.key==='+'||e.key==='='){e.preventDefault();setZoom(zoomState.scale+.2);return;}
-    if(e.key==='-'){e.preventDefault();setZoom(zoomState.scale-.2);return;}
-    if(e.key==='0'){e.preventDefault();resetZoom();return;}
+    if(e.key==='+'||e.key==='='){e.preventDefault();zoomBy(1.2);return;}
+    if(e.key==='-'){e.preventDefault();zoomBy(1/1.2);return;}
+    if(e.key==='0'){e.preventDefault();resetAllZoom();return;}
     if(e.key==='Home'){e.preventDefault();const mm=currentManga();if(mm){mm.page=1;save();loadCurrentPage();}return;}
     if(e.key==='End'){e.preventDefault();const mm=currentManga(),cc=mm&&curChapter(mm);if(mm&&cc){mm.page=cc.pageCount||1;save();loadCurrentPage();}return;}
     const rtl = m && m.readingDirection !== 'ltr';
@@ -4003,10 +4055,10 @@ function openTutorial(step=0){
 const HELP_SECTIONS = [
   { id:'start', title:'🚀 Getting started', body:`<ul><li><b>Add manga</b> from the Library: link a folder (desktop Chrome / Edge) or upload CBZ / image files (works everywhere).</li><li>Name chapters like “Vol 1 Ch 3”, or keep one folder per chapter, so volumes and chapters are detected. You can edit them in the confirm step.</li><li>There is no upload size limit, but big imports take a while. Keep the tab open until saving finishes, and import a few volumes at a time if your phone runs low on memory.</li><li>Tap a card or <b>Continue</b> to read. Double-click a card on desktop to jump straight back in.</li></ul>` },
   { id:'library', title:'📚 Library and cards', body:`<ul><li><b>Continue</b> opens the reader where you stopped.</li><li><b>Structure</b> is a dashboard for one manga: totals, progress, and every volume and chapter with covers, read status, pages, reading time and counts. Tap a chapter to read from it, use <b>Mark read</b> per chapter or per volume, and use the controls (Grid / List, cover size, order, All / Unread / Read, and which details to show) to make it your own. Your choices are remembered.</li><li><b>☆ / ★</b> marks a favorite. Favorites appear in a bar at the top.</li><li><b>Hide completed</b> hides manga you have finished.</li><li>The ring shows your progress. ⏱ is your total reading time for that manga.</li><li>Folder-linked manga: browsers forget folder access when you close the site. When you open the manga, allow access in the prompt. If the page says it needs access, tap <b>Tap to allow folder access</b>. Your progress, counters and chapter edits are kept. Only choose the folder again if it was moved or renamed. In Chrome, picking “Allow on every visit” (when offered) makes it stick.</li><li>The “Download manga from MangaDex” link goes to a separate third-party downloader, not MangaDex itself.</li></ul>` },
-  { id:'reader', title:'👆 Reading and gestures', body:`<ul><li><b>Turn pages:</b> tap or click the left / right side. In right-to-left manga (the default), tapping the <b>left</b> goes forward. You can switch direction in Stats.</li><li><b>Menus:</b> tap the middle to show or hide them.</li><li><b>Zoom:</b> pinch, or double-tap the middle. Double-tap again (or use the fit button) to zoom out. While zoomed, side taps and swipes do not turn pages.</li><li><b>Fit:</b> the Fit button cycles Page, Width, Height and Original, saved per manga.</li><li><b>Jump:</b> the 📑 button opens a search for volumes and chapters. Long-press the page number to jump to a page.</li><li><b>🔖</b> bookmarks the page. <b>▶</b> is auto-play. <b>⛶</b> is fullscreen. <b>⚙</b> has reader settings (layout, double-page with cover offset, scroll mode, preload, greyscale, dimming).</li><li>If you reload, you will be asked whether to resume where you were.</li></ul>` },
+  { id:'reader', title:'👆 Reading and gestures', body:`<ul><li><b>Turn pages:</b> tap or click the left / right side. In right-to-left manga (the default), tapping the <b>left</b> goes forward. You can switch direction in Stats.</li><li><b>Menus:</b> tap the middle to show or hide them.</li><li><b>Zoom on touch:</b> pinch, or double-tap the middle. Double-tap again to zoom out. While zoomed, side taps and swipes do not turn pages.</li><li><b>Zoom on PC:</b> hold <kbd>Ctrl</kbd> and scroll the mouse wheel (it zooms toward the cursor), use <kbd>+</kbd> / <kbd>−</kbd> / <kbd>0</kbd>, or the − ⤢ + buttons at the top. While zoomed in, scroll or drag to move around the page. In scroll (strip) mode, zoom changes the page width.</li><li><b>Fit:</b> the Fit button cycles Page, Width, Height and Original, saved per manga.</li><li><b>Jump:</b> the 📑 button opens a search for volumes and chapters. Long-press the page number to jump to a page.</li><li><b>🔖</b> bookmarks the page. <b>▶</b> is auto-play. <b>⛶</b> is fullscreen. <b>⚙</b> has reader settings (layout, double-page with cover offset, scroll mode, preload, greyscale, dimming).</li><li>If you reload, you will be asked whether to resume where you were.</li></ul>` },
   { id:'counter', title:'🔢 Counters', body:`<ul><li>Counters track anything you like while you read, for example how often a character shows up.</li><li>In the reader, open <b>☰</b> to see counters. <b>Pin</b> a counter to get a quick chip in the reader.</li><li>Each count saves the volume, chapter and page. <b>Undo</b> (top bar) removes the last count.</li><li>Counters belong to one manga. In the Counter tab, <b>Copy counters from another manga</b> reuses names, tabs and keys from a series you already set up (counts are not copied).</li><li>On desktop, each counter has a key. Press it to add +1. <kbd>Shift</kbd>+key counts it as a cover appearance, <kbd>Alt</kbd>+key adds a note, <kbd>Alt</kbd>+<kbd>Shift</kbd>+key subtracts 1.</li></ul>` },
   { id:'stats', title:'📊 Stats and reading time', body:`<ul><li><b>Reading time</b> is added up per chapter, then per volume, then per manga. For example five chapters of 5 minutes make a 25 minute volume.</li><li>Time only counts while you are in the reader, and a single page counts for at most 1 minute so leaving a page open does not inflate it.</li><li>Stats also shows volume summaries, totals, notes, bookmarks and your last 30 reading sessions.</li><li>Chapters count as read when you reach their last page. You can also mark chapters read from Structure.</li></ul>` },
-  { id:'keys', title:'⌨️ Keyboard shortcuts (reader)', body:`<ul><li><kbd>←</kbd> / <kbd>→</kbd> turn pages (direction follows reading order), <kbd>Space</kbd> next, <kbd>Shift</kbd>+<kbd>Space</kbd> previous</li><li><kbd>Home</kbd> / <kbd>End</kbd> first / last page of the chapter</li><li><kbd>F</kbd> fit mode, <kbd>J</kbd> jump menu, <kbd>S</kbd> settings, <kbd>B</kbd> bookmark, <kbd>D</kbd> counter drawer</li><li><kbd>+</kbd> / <kbd>−</kbd> / <kbd>0</kbd> zoom in / out / reset</li><li><kbd>Esc</kbd> back to the library, <kbd>Backspace</kbd> or <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo the last count</li></ul>` },
+  { id:'keys', title:'⌨️ Keyboard shortcuts (reader)', body:`<ul><li><kbd>←</kbd> / <kbd>→</kbd> turn pages (direction follows reading order), <kbd>Space</kbd> next, <kbd>Shift</kbd>+<kbd>Space</kbd> previous</li><li><kbd>Home</kbd> / <kbd>End</kbd> first / last page of the chapter</li><li><kbd>F</kbd> fit mode, <kbd>J</kbd> jump menu, <kbd>S</kbd> settings, <kbd>B</kbd> bookmark, <kbd>D</kbd> counter drawer</li><li><kbd>+</kbd> / <kbd>−</kbd> / <kbd>0</kbd> zoom in / out / reset, <kbd>Ctrl</kbd> + mouse wheel zooms at the cursor</li><li><kbd>Esc</kbd> back to the library, <kbd>Backspace</kbd> or <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo the last count</li></ul>` },
   { id:'install', title:'📲 Install as an app', body:`<ul><li><b>Android (Chrome):</b> open the ⋮ menu, then <b>Install app</b> (or <b>Add to Home screen</b>). It then opens full-screen from your home screen like a normal app. If a <b>📲 Install app</b> button shows at the top of this guide, you can use that too.</li><li><b>iPhone / iPad (Safari):</b> tap Share, then <b>Add to Home Screen</b>.</li><li><b>Desktop (Chrome / Edge):</b> use the install icon at the right of the address bar.</li><li>The app opens even without internet. Your library is stored in the browser, so it is the same data you see in the browser. Export a backup before installing, just to be safe.</li><li>When a new version is published, the app picks it up the next time you open it with internet.</li></ul>` },
   { id:'data', title:'💾 Your data and backups', body:`<ul><li>Everything is stored in this browser (localStorage and IndexedDB). Nothing is uploaded anywhere.</li><li>Clearing site data, or using a different browser, means starting empty. <b>Export</b> a save from the Stats page regularly. CSV export is there too.</li><li>Uploaded files use browser storage, so a very large library can hit your browser's storage limit. Linked folders do not.</li><li>Themes are in the top bar (the colored squares).</li></ul>` }
 ];
@@ -4033,6 +4085,9 @@ function maybeShowReaderHint(){
   }, 700);
 }
 document.addEventListener('click', e => {
+  if(e.target.closest('#fsZoomIn')){ e.preventDefault(); zoomBy(1.25); return; }
+  if(e.target.closest('#fsZoomOut')){ e.preventDefault(); zoomBy(0.8); return; }
+  if(e.target.closest('#fsZoomReset')){ e.preventDefault(); resetAllZoom(); return; }
   if(e.target.closest('#helpBtn, #fsHelp')){ e.preventDefault(); openHelp(); return; }
   const l = e.target.closest('[data-open-help]');
   if(l){ e.preventDefault(); openHelp(l.dataset.openHelp); }
