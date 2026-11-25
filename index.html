@@ -831,6 +831,20 @@ let rs = loadRS();
 function saveRS(){ try{ localStorage.setItem(RS_KEY, JSON.stringify(rs)); }catch(e){} }
 
 
+
+/* If the saved position (volume/chapter) does not exist in this manga, move it to the first real chapter.
+   Fixes manga that start at Vol 1 Ch 1 when the uploaded files only contain e.g. Vol 9. */
+function fixStartPosition(m){
+  if(!m || !Array.isArray(m.volumes) || !m.volumes.length) return false;
+  const vols = m.volumes.filter(v => v && Array.isArray(v.chapters) && v.chapters.length).sort((a, b) => a.num - b.num);
+  if(!vols.length) return false;
+  const curVol = vols.find(v => Number(v.num) === Number(m.volume));
+  if(curVol && curVol.chapters.some(c => Number(c.num) === Number(m.chapter))) return false;
+  const v = curVol || vols[0];
+  const c = v.chapters.slice().sort((a, b) => a.num - b.num)[0];
+  m.volume = v.num; m.chapter = c.num; m.page = 1;
+  return true;
+}
 function emptyManga(title){
   return {
     id: 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
@@ -3465,6 +3479,7 @@ async function saveReorg(){
     manga.volumes = [{ num: 1, chapters: [{ num: 1, name: null, pageCount: keys.length, keys }] }];
     manga.coverKey = keys[0] || null;
   }
+  fixStartPosition(manga);
   state.mangas.push(manga);
   state.currentMangaId = manga.id;
   save();
@@ -3485,6 +3500,7 @@ async function openManga(id){
   const m = state.mangas.find(x => x.id === id);
   if(!m) return;
   if(activeReadSession) finishSession();
+  fixStartPosition(m);
   state.currentMangaId = id;
   save();
   pageCache.clear();
@@ -3544,6 +3560,7 @@ function relinkFolder(id){
         }))
       }));
       m.coverKey = coverKey || m.coverKey;
+      fixStartPosition(m);
       save();
       renderMain();
       showToastText(`🔗 Linked "${esc(handle.name)}"`);
@@ -4040,6 +4057,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
 }
 
 window.addEventListener('pagehide', ()=>{ if(activeReadSession){const mm=state.mangas.find(x=>x.id===activeReadSession.mid);if(mm)mm.activeReadingSession=activeReadSession;} flushSave(); });
+try{ let fixedPos = false; state.mangas.forEach(m => { if(fixStartPosition(m)) fixedPos = true; }); if(fixedPos) save(); }catch(_){}
 applyTheme(currentTheme);
 setSaveIndicator(false);
 document.body.classList.toggle('reading', state.view === 'reader');
