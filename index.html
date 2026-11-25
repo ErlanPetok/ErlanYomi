@@ -805,7 +805,7 @@ const RS_DEFAULTS = {
   layout:'single', offset:false, slide:false,
   scrollMode:'continuous', scrollSpeed:80, advanceSecs:8,
   progressPos:'bottom', preload:'some', hideTap:'single',
-  grey:false, dim:0
+  grey:false, dim:0, keepZoom:false
 };
 const RS_LIMITS = { stripMargin:[0,400], stripWidth:[300,2400], scrollSpeed:[10,600], advanceSecs:[1,120], dim:[0,80] };
 function sanitizeRS(s){
@@ -819,7 +819,7 @@ function sanitizeRS(s){
   if(!['left','top','bottom','right','off'].includes(o.progressPos)) o.progressPos = 'bottom';
   if(!['some','all'].includes(o.preload)) o.preload = 'some';
   if(!['single','double'].includes(o.hideTap)) o.hideTap = 'single';
-  o.strip = !!o.strip; o.offset = !!o.offset; o.slide = !!o.slide; o.grey = !!o.grey;
+  o.strip = !!o.strip; o.offset = !!o.offset; o.slide = !!o.slide; o.grey = !!o.grey; o.keepZoom = !!o.keepZoom;
   return o;
 }
 function loadRS(){
@@ -1635,10 +1635,23 @@ function applyZoom(){
   else if(spread && stg && spread.offsetWidth>0 && spread.offsetHeight>0){
     const r=stg.getBoundingClientRect();
     const mx=Math.max(0,(spread.offsetWidth*zoomState.scale-r.width)/2), my=Math.max(0,(spread.offsetHeight*zoomState.scale-r.height)/2);
+    if(zoomState.snapTop){
+      const m0=currentManga(); const rtl=!m0 || m0.readingDirection!=='ltr';
+      zoomState.x=rtl?-mx:mx; zoomState.y=my; zoomState.snapTop=false;
+    }
     zoomState.x=Math.max(-mx,Math.min(mx,zoomState.x)); zoomState.y=Math.max(-my,Math.min(my,zoomState.y));
   }
   if(spread){spread.style.transform=`translate(${zoomState.x}px,${zoomState.y}px) scale(${zoomState.scale})`;spread.style.transformOrigin='center center';spread.style.zIndex=zoomState.scale>1?'8':'1';}
-  if(ind){ind.textContent=Math.round(zoomState.scale*100)+'%';ind.classList.toggle('show',Math.abs(zoomState.scale-1)>0.01);}
+  if(ind) ind.textContent=Math.round(zoomState.scale*100)+'%';
+}
+/* Show the zoom % briefly, then fade it out after 3 seconds. */
+let zoomIndTimer=null;
+function flashZoomIndicator(){
+  const ind=document.getElementById('zoomIndicator'); if(!ind) return;
+  ind.textContent=Math.round(zoomState.scale*100)+'%';
+  ind.classList.add('show');
+  clearTimeout(zoomIndTimer);
+  zoomIndTimer=setTimeout(()=>ind.classList.remove('show'),3000);
 }
 /* Zoom keeping the point under (cx,cy) fixed. Used by Ctrl+wheel, trackpad pinch, +/- keys and the zoom buttons. */
 function zoomAt(ns,cx,cy){
@@ -1651,6 +1664,7 @@ function zoomAt(ns,cx,cy){
   zoomState.x=px-(px-zoomState.x)*k; zoomState.y=py-(py-zoomState.y)*k;
   zoomState.scale=Math.abs(ns-1)<0.03?1:ns;
   applyZoom();
+  flashZoomIndicator();
 }
 /* Scroll (strip) mode has no image zoom; zooming changes the page width instead. */
 function stripZoom(factor){
@@ -1666,10 +1680,10 @@ function stripZoom(factor){
 function zoomBy(factor,cx,cy){ if(isStrip()) stripZoom(factor); else zoomAt(zoomState.scale*factor,cx,cy); }
 function resetAllZoom(){
   if(isStrip()){ rs.stripWidth=RS_DEFAULTS.stripWidth; saveRS(); applyReaderSettings(); showToastText('Page width reset'); }
-  else resetZoom();
+  else { resetZoom(); flashZoomIndicator(); }
 }
 function resetZoom(){zoomState.scale=1;zoomState.x=0;zoomState.y=0;applyZoom();}
-function setZoom(scale){zoomState.scale=Math.max(1,Math.min(4,scale));if(zoomState.scale===1){zoomState.x=0;zoomState.y=0;}applyZoom();}
+function setZoom(scale){zoomState.scale=Math.max(1,Math.min(4,scale));if(zoomState.scale===1){zoomState.x=0;zoomState.y=0;}applyZoom();flashZoomIndicator();}
 function showChapterTransition(){
   const stage=document.getElementById('fsStage'),m=currentManga();if(!stage||!m)return;
   stage.querySelector('.chapter-transition')?.remove();
@@ -2217,7 +2231,8 @@ function emptyStateHTML(m, msg, code){
     <div style="margin-top:16px">${main}</div>`;
 }
 async function loadCurrentPage(){
-  resetZoom();
+  if(rs.keepZoom && !isStrip() && zoomState.scale !== 1){ zoomState.x = 0; zoomState.y = 0; }
+  else resetZoom();
   const m = currentManga();
   if(!m) return;
   const stage = document.getElementById('fsStage');
@@ -2282,6 +2297,13 @@ async function loadCurrentPage(){
     lastNavDelta = 0;
     stage.appendChild(w);
     currentDisplayImg = w;
+    if(rs.keepZoom && zoomState.scale !== 1){
+      /* carry the zoom over: start at the top corner in reading direction, and redo it once the image has its real size */
+      zoomState.snapTop = zoomState.scale > 1; applyZoom();
+      w.querySelectorAll('img').forEach(im => { if(!im.complete) im.addEventListener('load', () => {
+        if(currentDisplayImg === w && rs.keepZoom){ zoomState.snapTop = zoomState.scale > 1; applyZoom(); }
+      }, { once: true }); });
+    }
     curSpreadLen = pages.length;
     if(pages.length>1) recordReadingPage(m.volume,m.chapter,pages[1]);
     updateReaderMeta();
@@ -2770,6 +2792,7 @@ function applySetting(k, v){
       if(isDouble()) m.page = Math.max(1, spreadStart(m.page));
       save(); lastNavDelta = 0; applyReaderSettings(); loadCurrentPage(); break;
     case 'stripMargin': case 'grey': case 'dim': applyReaderSettings(); break;
+    case 'keepZoom': if(!rs.keepZoom) resetZoom(); break;
     case 'progressPos': applyReaderSettings(); setProgress(lastProgress); break;
     case 'scrollMode': case 'scrollSpeed': case 'advanceSecs': autoRestart(); updatePlayBtn(); break;
     case 'preload':
@@ -2841,6 +2864,10 @@ function settingsHTML(){
 
     <div class="rs-sec">
       <label class="rs-check"><input type="checkbox" data-chk="grey"> Greyscale pages</label>
+    </div>
+    <div class="rs-sec">
+      <label class="rs-check"><input type="checkbox" data-chk="keepZoom"> Keep zoom between pages</label>
+      <div class="rs-note">When on, your zoom level stays as you turn pages and each page starts at its top corner. Off resets to fit on every page.</div>
     </div>
     <div class="rs-sec"><div class="rs-lbl">Dim pages</div>
       <div class="rs-row" style="align-items:center">
